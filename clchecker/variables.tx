@@ -1,0 +1,16 @@
+Main[ws=' \t']:
+    (Comment*)? "variables" ":" /\n*/ var=Variables+ 'end' /[\s\S]*/
+;
+
+Variables[ws=' \t']:
+    name=Word "=" value=/[^\r\n]*/ /\n*/
+;
+
+Comment:
+    /\/\/.*$/
+;
+
+// letters, numbers, underscores or hyphen
+Word:
+    /[^\d\W-][\w-]*/
+;

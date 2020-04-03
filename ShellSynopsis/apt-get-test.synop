@@ -1,0 +1,6 @@
+apt-get
+([-q | -q=<INT>](warning:m1)
+[-y](tag:-y)
+{install(always:[tag:-y]) {<PKG> [={<VERSION> | <RELEASE>}]}(NOSKIPWS)+})#
+
+message m1 = "hello"
