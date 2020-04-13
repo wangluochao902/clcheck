@@ -1,10 +1,10 @@
 import os
 
-ROOTDIR = os.path.dirname(os.path.dirname(__file__))
+ROOTDIR = os.path.dirname(__file__)
 CLCHECKERDIR = os.path.join(ROOTDIR, "clchecker")
-SYNOPDIR = os.path.join(ROOTDIR, 'ShellSynopsis')
-SYNOPSIS = os.path.join(CLCHECKERDIR, 'synopsis.tx')
-
+EMANDIR = os.path.join(ROOTDIR, 'eman')
+EMAN = os.path.join(CLCHECKERDIR, 'eman.tx')
+DOCKERFILE_RECORD = os.path.join(ROOTDIR, 'dockerfiles/dockerfile_records.pkl')
 
 # host to pass into Flask's app.run.
 HOST_IP = os.getenv('HOST_IP', False)

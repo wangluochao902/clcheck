@@ -18,7 +18,7 @@
     </div>
 
     <div class="editor">
-      <Editor :error="error" :language="language" @clcheck="clcheck"></Editor>
+      <Editor :language="language" :path="path"></Editor>
     </div>
   </div>
 </template>
@@ -37,10 +37,19 @@ export default {
       language: "shell",
       // height: "400px",
       // width: "100px",
-      path: "http://127.0.0.1:5000/clcheck/",
+      path: "http://127.0.0.1:5001/clcheck/",
       error: {
         code: "",
         marker: ""
+      },
+      explanation: "",
+      commandRange: {
+        hello: {
+          startLine: 1,
+          endLine: 2,
+          startColumn: 1,
+          endColumn: 10
+        }
       }
     };
   },
@@ -57,7 +66,11 @@ export default {
         res => {
           console.log("inside axios");
           console.log(res);
-          this.error = res.data;
+          this.error = res.data.error;
+          console.log(res.data.commandRange);
+          this.commandRange = res.data.commandRange;
+          console.log(this.commandRange);
+          console.log("end axios");
         },
         error => {
           console.log("can not access");
@@ -66,6 +79,26 @@ export default {
             code: "",
             marker: ""
           };
+          this.commandRange = {};
+        }
+      );
+    },
+
+    explain(commandName, word) {
+      console.log("receive the explain event");
+      axios({
+        method: "POST",
+        url: this.path+"explain/",
+        headers: { "Content-Type": "application/json" },
+        data: { commandName: commandName, key: word }
+      }).then(
+        res => {
+          this.explanation = res.data.explanation;
+        },
+        error => {
+          console.log("can not get explanation");
+          console.log(error);
+          this.explanation = "";
         }
       );
     }

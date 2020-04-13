@@ -2,25 +2,26 @@ import pymongo
 import collections
 import re
 import logging
-import clchecker.config as config
+import config as config
 
 logger = logging.getLogger(__name__)
 
 
 class Command:
-    def __init__(self, command_name, tx_syntax, clsname_to_readable_syntax, concrete_specs, synop):
+    def __init__(self, command_name, tx_syntax, clsname_to_readable_syntax, concrete_specs, explantion, eman):
         self.command_name = command_name
         self.tx_syntax = tx_syntax
         self.clsname_to_readable_syntax = clsname_to_readable_syntax
         self.concrete_specs = concrete_specs
-        self.synop = synop
+        self.explanation = explantion
+        self.eman = eman
 
     @classmethod
     def from_store(cls, doc):
-        return cls(doc['command_name'], doc['tx_syntax'], doc['clsname_to_readable_syntax'], doc['concrete_specs'], doc['synop'])
+        return cls(doc['command_name'], doc['tx_syntax'], doc['clsname_to_readable_syntax'], doc['concrete_specs'], doc['explanation'], doc['eman'])
 
     def to_store(self):
-        return {'command_name': self.command_name, 'tx_syntax': self.tx_syntax, 'clsname_to_readable_syntax': self.clsname_to_readable_syntax, 'concrete_specs': self.concrete_specs, 'synop': self.synop}
+        return {'command_name': self.command_name, 'tx_syntax': self.tx_syntax, 'clsname_to_readable_syntax': self.clsname_to_readable_syntax, 'concrete_specs': self.concrete_specs, "explanation": self.explanation, 'eman': self.eman}
 
 
 class Store():
@@ -80,7 +81,7 @@ class Store():
             return command
 
     def addcommand(self, command, overwrite=False):
-        if self.findcommand(command.command_name):
+        if self.findcommand(command.command_name) is not None:
             if not overwrite:
                 raise ValueError(
                     f'command "{command.command_name}" is already in the database')
@@ -88,4 +89,5 @@ class Store():
                 logger.warning(f'overwrite command {command.command_name}')
                 self.commands.replace_one(
                     {'command_name': command.command_name}, command.to_store())
-        self.commands.insert_one(command.to_store())
+        else:
+            self.commands.insert_one(command.to_store())

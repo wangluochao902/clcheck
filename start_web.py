@@ -1,4 +1,4 @@
 from web.server.app import app
-DEBUG=True
+DEBUG=False
 
 app.run(debug=DEBUG, port=5000)

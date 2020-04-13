@@ -1,72 +1,4 @@
-eman1 = """
-e-synopsis:
-    apt-get (<options>
-    {
-        install <options> <pkg-with-optional-version> |
-        remove <options> <PKG>+  
-    })#
-e-end
-
-e-options:
-    -q: [-q | -q=<INT> | --quiet | --quiet=<INT> | -qq](mutex:[--print-urls, -s])
-    -s: [-s | --simulate | --just-print | --just-run | --recon | --no-act]
-    -y: [-y | --yes | --assume-yes]
-    --assume-no: (mutex:[-y])
-    --allow-downgrades: (warning:m1)
-    --print-urls
-    --reinstall
-e-end
-
-e-variables:
-    pkg-with-optional-version = {<PKG> [= <VERSION>]}(noskipws)
-    m1 = "dangerous option"
-e-end
-
-e-explanation:
-    install
-        install is followed by one or more packages desired for installation or upgrading. Each package is a package name, not a fully qualified
-
-        A specific version of a package can be selected for installation by following the package name with an equals and the version of the
-
-    remove
-        remove is identical to install except that packages are removed instead of installed. Note that removing a package leaves its configuration
-        files on the system. If a plus sign is appended to the package name (with no intervening space), the identified package will be installed
-        instead of removed.
-e-end"""
-
-
-eman1_preprocessed = """
-e-synopsis:
-    apt-get (<options>
-    {
-        install <options> {<PKG> [= <VERSION>]}(noskipws) |
-        remove <options> <PKG>+  
-    })#
-e-end
-
-e-options:
-	-q:[-q | -q=<INT> | --quiet | --quiet=<INT> | -qq](mutex:[--print-urls, -s])
-	-s:[-s | --simulate | --just-print | --just-run | --recon | --no-act]
-	-y:[-y | --yes | --assume-yes]
-	--assume-no:[--assume-no](mutex:[-y])
-	--allow-downgrades:[--allow-downgrades](warning:m1)
-	--print-urls:[--print-urls]
-	--reinstall:[--reinstall]
-e-end
-
-e-explanation:
-    install
-        install is followed by one or more packages desired for installation or upgrading. Each package is a package name, not a fully qualified
-
-        A specific version of a package can be selected for installation by following the package name with an equals and the version of the
-
-    remove
-        remove is identical to install except that packages are removed instead of installed. Note that removing a package leaves its configuration
-        files on the system. If a plus sign is appended to the package name (with no intervening space), the identified package will be installed
-        instead of removed.
-e-end"""
-
-eman1_translated = """// DSL for command "apt-get"
+// DSL for command "apt-get"
 
 Main_Rule:
 	command="apt-get" statement=UnorderedStatement_0
@@ -313,4 +245,3 @@ PKG:
 //    content=/[\w\*][:\w\.\-\*\+]*/
     content=/[\S]+/
 ;
-"""

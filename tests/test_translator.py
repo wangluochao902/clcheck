@@ -1,20 +1,28 @@
 from clchecker.store import Store, Command
 from clchecker.translate import Translator
-import clchecker.config as config
+import config as config
 from textx import metamodel_from_file
-import unittest, os
+import pytest, os
 import tests.utils as utils
 
+@pytest.fixture
+def translator():
+    metamodel = metamodel_from_file(config.EMAN)
+    translator = Translator(metamodel)
+    return translator
 
-class Test_Translator(unittest.TestCase):
-    def setUp(self):
-        synopsis_metamodel = metamodel_from_file(config.SYNOPSIS)
-        self.translator = Translator(synopsis_metamodel)
-        
-    def test_translate1(self):
-        self.translator.translate(utils.APT_GET_SYNOP1, save_to_file=True, save_dir=config.SYNOPDIR)
-        print(self.translator.spec)
+def is_diff(str1, str2):
+    for i in range(max(len(str1), len(str2))):
+        if i >= len(str2) or i>=len(str1) or str1[i] != str2[i]:
+            return i
 
-    def test_translate2(self):
-        self.translator.translate(utils.APT_GET_SYNOP2, save_to_file=True, save_dir=config.SYNOPDIR)
-        print(self.translator.spec)
+def test_preprocess(translator):
+    translator.reset()
+    eman = translator.preprocess(utils.eman1)
+    diff = is_diff(eman, utils.eman1_preprocessed)
+    assert not diff
+
+def test_translate(translator):
+    eman1_translated = translator.translate(utils.eman1, save_to_file=True, save_dir=config.EMANDIR)
+    diff = is_diff(eman1_translated, utils.eman1_translated)
+    assert not diff

@@ -57,10 +57,10 @@ class CLchecker():
         for rule_type in ('after', 'before', 'always', 'mutex'):
             if rule_type in specs:
                 rule_spec = specs[rule_type]
-                if 'word2s' in rule_spec:
+                if 'all_must_present' in rule_spec:
                     if rule_type == 'always':
                         excepted_but_not_occur_names = [
-                            name for name in rule_spec['word2s'] if name not in clsname_to_txobj]
+                            name for name in rule_spec['all_must_present'] if name not in clsname_to_txobj]
                         if excepted_but_not_occur_names:
                             expected_string = ",".join(
                                 [clsname_to_readable_syntax[name] for name in excepted_but_not_occur_names])
@@ -69,7 +69,7 @@ class CLchecker():
                                 f'Expect `{expected_string}` when `{clsname_to_readable_syntax[clsname]}` occurs', **position)
                     if rule_type == 'mutex':
                         not_excepted_but_occur_names = [
-                            name for name in rule_spec['word2s'] if name in clsname_to_txobj]
+                            name for name in rule_spec['all_must_present'] if name in clsname_to_txobj]
                         if not_excepted_but_occur_names:
                             expected_string = ",".join(
                                 [clsname_to_readable_syntax[name] for name in not_excepted_but_occur_names])
@@ -118,3 +118,9 @@ class CLchecker():
                 if clsname in concrete_specs:
                     self.check_after_before_always_mutex(
                         clsname, concrete_specs[clsname], clsname_to_txobj, clsname_to_readable_syntax)
+
+    def find_explanation(self, command_name, key):
+        command_doc = self.store.findcommand(command_name)
+        if command_doc:
+            if key in command_doc.explanation:
+                return command_doc.explanation[key]

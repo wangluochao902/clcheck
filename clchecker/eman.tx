@@ -1,0 +1,196 @@
+eman:
+    synopsis=Synopsis options=Options? variables=Variables? explanation=Explanation?
+;
+
+// ****** this rules includes keywords that needed to match first. *****
+// ****** We put them at the top to avoid potential conflict when *****
+// ************  multi rules apply at the same time *********
+Synopsis:
+    "e-synopsis" ":" command=Word statement=Statement "e-end"
+;
+
+Options:
+    "e-options" ":" pairs*=OptionPair "e-end"
+;
+
+Variables:
+    "e-variables" ":" vars*=VariablePair "e-end"
+;
+
+Explanation[noskipws]:
+    /\s*/-
+    "e-explanation" ":" /\n/  pairs*=ExplanationPair "e-end"
+    /\s*/-
+;
+
+
+// ****************************** Synopsis ************************************
+Type:
+    '<' type_name=TypeName '>'
+;
+
+TypeName:
+    'INT' | 'FLOAT' | 'STRICTFLOAT' | 'BOOL' | 'STRING' | 'NOTWHITESPACE' | 'VERSION' | 'PATH' | 'DIR' | 'PKG'
+;
+
+// Since an UnorderedStatement can be an element of a SequentialStatement, we put UnorderedStatement
+// before SequentialStatement. So an UnorderedStatement will be matched first when applicable. 
+Statement:
+    unordered_statement=UnorderedStatement | sequential_statement=SequentialStatement
+;
+
+UnorderedStatement:
+    '(' elements*=Element ')#'
+;
+
+SequentialStatement:
+    elements*=Element
+;
+
+Element:
+    sub_command=SubCommand  | equal="=" | type=Type (multi="+" | multi="*")? | single_option=SingleOption | unordered_statement=UnorderedStatement | collection=Collection (multi="+" | multi="*")? | placeholder=PlaceHolder (multi="+" | multi="*")?
+;
+
+SubCommand:
+    value=Word (specification=Specification)?
+;
+
+SingleOption:
+    ShortOption | LongOption
+;
+
+ShortOption:
+    dash='-' option=Word (equal='=' type=Type (multi='+')?)?
+;
+
+LongOption:
+    dash='--' option=Word (equal='=' type=Type (multi='+')?)?
+;
+
+
+Collection:
+    one_must_present_collection=OneMustPresentCollection | optional_collection=OptionalCollection
+;
+
+OneMustPresentCollection:
+    '{' statements *= Statement['|'] '}' specification=Specification? 
+;
+
+OptionalCollection:
+    '[' statements *= Statement['|'] ']' specification=Specification? 
+;
+
+PlaceHolder:
+    "<" value=Word2 ">"
+;
+
+
+// ****************************** Option ************************************
+
+// todo: when ":" occurs, at least one of OptionalCollection and Specification has to occurs
+OptionPair:
+    key=Word2 (":" optional_collection=OptionalCollection? specification=Specification?)?
+;
+
+
+// ****************************** Variable ************************************
+VariablePair:
+    varname=/[\w-]+/ "=" value= /.*$/
+;
+
+
+// ****************************** Explanation ************************************
+ExplanationPair[noskipws]:
+    /\t| {4}/ keys*=Word2[/ *, */] / *\n/ values+=ExplanationValue /\n/?
+;
+
+ExplanationValue[noskipws]:
+    /\t{2}| {8}/ value=/.*/ /\n/ | value=/[ \t]*\n/
+;
+
+
+// ****************************** Specification ************************************
+Specification:
+    '(' (after=After? before=Before? always=Always? mutex=Mutex? info=Info?)#[','] (","? noskipws=NoSkipWS)? ')'
+;
+
+
+After:
+    "after" ":" item=Item
+;
+
+Before:
+    "before" ":" item=Item
+;
+
+Always:
+    "always" ":" item=Item
+;
+
+Mutex:
+    "mutex" ":" item=Item
+;
+
+Info:
+    warning=Warning | error=Error | example=Example | other_key_values*=OtherKeyValue
+;
+
+Warning:
+    "warning" ":" value=StringOrVar
+;
+
+Error:
+    "error" ":" value=StringOrVar
+;
+
+Example:
+    "example" ":" value=StringOrVar
+;
+
+OtherKeyValue:
+    key=Word ":" value=StringOrVar
+;
+
+StringOrVar:
+    string=STRING | var=Word
+;
+
+NoSkipWS:
+    "noskipws"
+;
+
+Item:
+    all_must_present_item=AllMustPresentItem | one_must_present_item=OneMustPresentItem
+;
+
+AllMustPresentItem:
+    '[' refs+=Word2[','] ']'
+;
+
+OneMustPresentItem:
+    '{' refs*=Word2['|'] '}'
+;
+
+
+// ****************************** Keyword ************************************
+
+
+
+// word that excludes keyword; letters, numbers, underscores or hyphen, but not starts with hyphen
+Word:
+   !Keyword  /(?!-)[\w-]+/
+;
+
+// word that excludes keyword; letters, numbers, underscores or hyphen, and can start with hyphen
+Word2:
+    !Keyword /[\w-]+/
+;
+
+Keyword:
+    "e-variables" | "e-synopsis" | "e-options" | "e-explanation" | "e-end" | TypeName
+;
+
+// ****************************** Comment ************************************
+Comment:
+    /[\t ]*\/\/.*$/
+;
