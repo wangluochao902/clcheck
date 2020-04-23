@@ -53,13 +53,24 @@ export default {
     language() {
       console.log(this.language);
       monaco.editor.setModelLanguage(this.editor.getModel(), this.language);
+      if (this.language == "shell"){
+        this.value = "if [ 3 -gt 2 ]; \nthen\n    apt-get --assume-no install -y nodejs;\nfi;"
+      } else{
+        this.value = "FROM ubuntu:16.04\nRUN apt-get --assume-no install -qqy nodejs\n"
+      }
     },
-    explanation() {}
+    explanation() {},
+    value(){
+      this.editor.setValue(this.value)
+    }
   },
 
   methods: {
     provideHover(model, position) {
       console.log("new");
+      console.log(position)
+      console.log('the command_range is')
+      console.log(this.commandRange)
       let commandName = this.getCommandName(position);
       if (commandName != null) {
         const word = this.getWord(model, position);
@@ -71,8 +82,8 @@ export default {
               range: new monaco.Range(
                 1,
                 1,
-                model.getLineCount(),
-                model.getLineMaxColumn(model.getLineCount())
+                position.lineNumber,
+                position.column
               ),
               contents: [
                 { value: `**${word}**` },
@@ -136,7 +147,10 @@ export default {
         this.clcheck(this.editor.getValue());
         console.log(this.editor.getValue().length);
       });
-      monaco.languages.registerHoverProvider(this.language, {
+      monaco.languages.registerHoverProvider("shell", {
+        provideHover: this.provideHover
+      });
+      monaco.languages.registerHoverProvider("dockerfile", {
         provideHover: this.provideHover
       });
     },
@@ -154,7 +168,7 @@ export default {
         method: "POST",
         url: this.path,
         headers: { "Content-Type": "application/json" },
-        data: { code: code }
+        data: { code: code, language: this.language }
       }).then(
         res => {
           console.log("inside axios");

@@ -2,16 +2,18 @@ e-synopsis:
     apt-get <options>
     {
         update |
-        upgrade |
+        upgrade <options> <PKG>* |
+        full-upgrade |
         dselect-upgrade |
         dist-upgrade |
         check |
-        clean <NOTWHITESPACE>*|
+        clean <ANY>*|
         autoclean |
-        autoremove |
+        autoremove <options> <PKG>* |
+        auto-remove <options> <PKG>* |
         install <options> <pkg-with-optional-version>+ |
-        remove <options> <PKG>+  |
-        purge <options> <PKG>+ |
+        remove <options> <PKG>*  |
+        purge <options> <PKG>* |
         source <options> <pkg-with-optional-version>+ |
         build-dep <options> <pkg-with-optional-version>+ |
         download <options> <pkg-with-optional-version>+  |
@@ -20,24 +22,26 @@ e-synopsis:
     } <options>
 e-end
 
-e-options:
+e-options options:
     --no-install-recommends
     --install-suggests
+    --no-install-suggests
     -d: [-d | --download-only]
     -f: [-f | --fix-broken]
     -m: [-m | --ignore-missing | --fix-missing]
     --no-download: (mutex:[-d])
-    -q: [-q | -q=<INT> | --quiet | --quiet=<INT> | -qq](mutex:[-d, --print-urls, -s, --show-progress])
+    -q: [-q=<INT> | -q | --quiet=<INT> | --quiet | -qq](mutex:[-d, --print-urls, -s, --show-progress])
     -s: [-s | --simulate | --just-print | --just-run | --recon | --no-act]
     -y: [-y | --yes | --assume-yes]
     --assume-no: (mutex:[-y])
     --no-show-upgraded
+    -u: [-u | --show-upgraded](mutex:[--no-show-upgraded])
     -V: [-V | --verbose-versions]
     -a: [-a=<STRING> | --host-architecture=<STRING>](always:[-b, source])
     -P: [-P | --build-profiles](always:[-b], after:[source])
     -b: [-b | --compile | --build]
     --ignore-hold:(always:[dist-upgrade])
-    --with-new-PKGs: (always:[upgrade])
+    --with-new-pkgs: (always:[upgrade])
     --no-upgrade: (mutex:[--only-upgrade])
     --only-upgrade
     --allow-downgrades: (warning:m1)
@@ -52,21 +56,22 @@ e-options:
     --trivial-only: (mutex:[-y])
     --no-remove: [--no-remove | --auto-remove](always:{install | remove}, mutex:[autoremove])
     --only-source
-    --diff-dsc-tar-only: [--diff-only | --dsc-only | tar-only]
+    --diff-dsc-tar-only: [--diff-only | --dsc-only | --tar-only]
     --arch-only
     --indep-only
     --allow-unauthenticated
     --no-allow-insecure-repositories
+    --allow-insecure-repositories
     --allow-releaseinfo-change
     --show-progress
     --with-source: [--with-source=<PATH>+]
     -c: [-c=<PATH> | --config-file=<PATH>]
-    -o: [-o=<STRING> | --option=<STRING>]
+    -o: [-o+=</\S+/> | --option+=</\S+/>]
 e-end
 
 
 e-variables:
-    pkg-with-optional-version = {<PKG> [= <VERSION>]}(noskipws)
+    pkg-with-optional-version = {<PKG> [= <VERSION>]}(NWS)
     m1 = "dangerous option"
 e-end
 
@@ -180,6 +185,9 @@ e-explanation:
     --install-suggests
         Consider suggested packages as a dependency for installing. Configuration Item: APT::Install-Suggests.
 
+    --no-install-suggests
+        Do not consider suggested packages as a dependency for installing. Configuration Item: APT::Install-Suggests.
+
     -d, --download-only
         Download only; package files are only retrieved, not unpacked or installed. Configuration Item: APT::Get::Download-Only.
 
@@ -226,7 +234,10 @@ e-explanation:
 
     --no-show-upgraded
         Do not show a list of all packages that are to be upgraded. Configuration Item: APT::Get::Show-Upgraded.
-
+    
+    -u, --show-upgraded
+        Show upgraded packages. Print out a list of all packages that are to be upgraded. Configuration Item: APT::Get::Show-Upgraded.
+    
     -V, --verbose-versions
         Show full versions for upgraded and installed packages. Configuration Item: APT::Get::Show-Versions.
 

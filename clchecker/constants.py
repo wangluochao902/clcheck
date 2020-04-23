@@ -3,23 +3,23 @@ BASETYPE = '''
 
 // base type for the DSL
 VERSION:
-    content=/[\S]+/
+    /[^=\s]+/ | STRING
 ;
 
-NOTWHITESPACE:
-    content=/[\S]+/
+ANY:
+    STRING | /[\S]+/
 ;
 
 PATH:
-    content=/(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\-\.]+/
+    /(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\-\.]+/ | STRING
 ;
 
 DIR:
-    content=/(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\.\-]+(?:\/)?/
+    /(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\.\-]+(?:\/)?/ | STRING
 ;
 
 PKG:
-//    content=/[\w\*][:\w\.\-\*\+]*/
-    content=/[\S]+/
+//    /[\w\*][:\w\.\-\*\+]*/
+    /[^=\s]+/
 ;
 '''

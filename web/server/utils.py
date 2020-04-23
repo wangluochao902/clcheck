@@ -23,7 +23,7 @@ class Visitor(bashlex.ast.nodevisitor):
                 commandname = commandnode.word
                 commandline = self.code[node.pos[0]:node.pos[1]]
                 try:
-                    self.clchecker.check_semantics(commandname, commandline)
+                    self.clchecker.check(commandname, commandline)
                 except CLError as e:
                     lines = self.code[:node.pos[0]].split('\n')
                     if lines:

@@ -5,12 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "test.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/dockerfiles/test.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
             "name": "add_to_store",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/clchecker/add_to_store.py",
-            "args": ["--eman_path", "eman/apt-get.eman"],
-            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "args": [
+                "--eman_path",
+                "eman/apt-get.eman"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
             "console": "integratedTerminal",
         }
     ]

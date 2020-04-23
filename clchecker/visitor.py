@@ -5,6 +5,13 @@ from textx import metamodel_from_file
 import bashlex
 import re
 
+def find_continuous_word_kind_range(parts):
+    start_index = bashlex.ast.findfirstkind(parts, 'word')
+    for i in range(start_index+1, len(parts)):
+        if parts[i].kind != 'word':
+            return (start_index, i-1)
+    return (start_index, len(parts)-1)
+
 
 class Visitor(bashlex.ast.nodevisitor):
     def __init__(self, clchecker, logger=None):
@@ -22,11 +29,12 @@ class Visitor(bashlex.ast.nodevisitor):
         return False
 
     def visitcommand(self, node, parts):
-        index = bashlex.ast.findfirstkind(parts, 'word')
         if self.has_parameter(parts):
             return
-        if index != -1:
-            wordnode = parts[index]
+        start_index, end_index = find_continuous_word_kind_range(parts)
+        if start_index != -1:
+            wordnode = parts[start_index]
+            endnode = parts[end_index]
             if wordnode.parts:
                 if self.logger:
                     self.logger.info(
@@ -34,7 +42,7 @@ class Visitor(bashlex.ast.nodevisitor):
             else:
                 commandname = wordnode.word
                 start = wordnode.pos[0]
-                end = node.pos[1]
+                end = endnode.pos[1]
                 commandline = self.code[start:end]
                 self.command_range[commandname] = {
                     "startLine": len(self.code[:start+1].split('\n')),
@@ -43,7 +51,7 @@ class Visitor(bashlex.ast.nodevisitor):
                     "endColumn": len(self.code[:end+1].rsplit('\n', 1)[-1])
                 }
                 try:
-                    self.clchecker.check_semantics(commandname, commandline)
+                    self.clchecker.check(commandname, commandline)
                 except CLError as e:
                     print(f"this has error: {commandline}")
                     lines = self.code[:start].split('\n')
@@ -63,11 +71,7 @@ class Visitor(bashlex.ast.nodevisitor):
                         start_col = e.start_col
                         end_line = e.end_line
                         end_col = e.end_col
-                    # todo: make message more readable
-                    pkg = "[\S]+".encode().decode()
-                    message = e.message.replace(pkg, "<PKG>")
-                    message = re.sub(r'position \(([1-9]*), ([1-9]*)\)', f'the position of the star(*) in' , message)
-                    self.markers.append(self.create_marker(start_line, start_col, end_line, end_col, message, "Error"))
+                    self.markers.append(self.create_marker(start_line, start_col, end_line, end_col, e.message, "Error"))
 
     def start(self, code):
         self.command_range = {}

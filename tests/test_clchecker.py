@@ -57,11 +57,71 @@ def test_check_CLSyntaxError(translator_clchecker):
     commandline = "apt-get install hello= 1.2"
     command_name = "apt-get"
     with pytest.raises(errors.CLSyntaxError) as e_info:
-        clchecker.check_semantics(command_name, commandline)
-        assert "Expected '[1-9\*\.]+' at position (1, 23) => 'all hello=* 1.2'" == e_info.value.args[0]
+        clchecker.check(command_name, commandline)
+    assert "at the position of the star(*) in => 'all hello=* 1.2'." in e_info.value.message
 
     commandline = "apt-get -y install hello=1.2"
-    clchecker.check_semantics(command_name, commandline)
+    clchecker.check(command_name, commandline)
+
+def test_combined_short_option_with_value(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = "apt-get -q=2 install hello=1.2"
+    command_name = "apt-get"
+    clchecker.check(command_name, commandline)
+
+def test_combined_short_option_with_value(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = "apt-get --quiet -qq install hello=1.2"
+    command_name = "apt-get"
+    with pytest.raises(errors.CLSyntaxError) as e_info:
+        clchecker.check(command_name, commandline)
+    assert "Only one of `-q=<INT> | -q | --quiet=<INT> | --quiet | -qq` can occur, since they have the same meaning" == e_info.value.message
+
+def test_combined_short_option(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = "apt-get -qqy install hello=1.2"
+    command_name = "apt-get"
+    clchecker.check(command_name, commandline)
+
+def test_combined_short_option_with_value(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = "apt-get -q=2 install hello=1.2"
+    command_name = "apt-get"
+    clchecker.check(command_name, commandline)
+
+def test_combined_short_option_with_long_option(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = "apt-get -qqy install --allow-downgrades hello=1.2"
+    command_name = "apt-get"
+    clchecker.check(command_name, commandline)
+
+def test_combined_optionsession_multi(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = 'apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade'
+    command_name = "apt-get"
+    clchecker.check(command_name, commandline)
+
+def test_CLSemanticError_combined_short_option_with_long_option(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman1, save_to_db=True,
+                                save_to_file=True, save_dir=config.EMANDIR)
+    commandline = "apt-get --assume-no install -qqy nodejs"
+    command_name = "apt-get"
+    with pytest.raises(errors.CLSemanticError) as e_info:
+        clchecker.check(command_name, commandline)
+    assert "`-y` and `--assume-no` can't occur at the same time" == e_info.value.message
 
 def test_check_CLSemanticError(translator_clchecker):
     translator, clchecker = translator_clchecker
@@ -70,8 +130,8 @@ def test_check_CLSemanticError(translator_clchecker):
     commandline = "apt-get --assume-no install -y hello=1.2"
     command_name = "apt-get"
     with pytest.raises(errors.CLSemanticError) as e_info:
-        clchecker.check_semantics(command_name, commandline)
-        assert "`-y | --yes | --assume-yes` and `--assume-no` can't occur at the same time" == e_info.value.args[0]
+        clchecker.check(command_name, commandline)
+    assert "`-y` and `--assume-no` can't occur at the same time" == e_info.value.message
 
 def test_explanation(translator_clchecker):
     translator, clchecker = translator_clchecker

@@ -31,7 +31,7 @@ def test_synop1_mutex1(visitor_setup):
     assert markers[0]['startColumn'] == 9
     assert markers[0]['endLineNumber'] == 1
     assert markers[0]['endColumn'] == 20
-    assert markers[0]['message'] == "`-y | --yes | --assume-yes` and `--assume-no` can't occur at the same time"
+    assert markers[0]['message'] == "`-y` and `--assume-no` can't occur at the same time"
     assert markers[0]['severity'] == 'Error'
 
     assert 'apt-get' in command_range
@@ -55,7 +55,7 @@ fi;"""
     assert markers[0]['startColumn'] == 13
     assert markers[0]['endLineNumber'] == 3
     assert markers[0]['endColumn'] == 24
-    assert markers[0]['message'] == "`-y | --yes | --assume-yes` and `--assume-no` can't occur at the same time"
+    assert markers[0]['message'] == "`-y` and `--assume-no` can't occur at the same time"
     assert markers[0]['severity'] == 'Error'
 
     assert 'apt-get' in command_range
@@ -80,5 +80,16 @@ fi;"""
     assert markers[0]['endLineNumber'] == None
     assert markers[0]['endColumn'] == None
     message = markers[0]['message'] 
-    assert "Expected" in message and "<PKG>" in message and "at the position of the star(*) in => '-y install*'." in message
+    assert "Expected" in message and "PKG" in message and "at the position of the star(*) in => '-y install*'." in message
+    assert "'--quiet'" in message
+    assert "'--just-print'" in message
+    assert "'--simulate'" in message
     assert markers[0]['severity'] == 'Error'
+
+
+def test_redirect(visitor_setup):
+    visitor, translator  = visitor_setup
+    translator.translate(utils.eman1, save_to_db=True,
+                    save_to_file=True, save_dir=config.EMANDIR)
+    code = "apt-get -yqq update > /dev/null"""
+    markers, command_range = visitor.start(code)

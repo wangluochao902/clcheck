@@ -1,5 +1,5 @@
 eman:
-    synopsis=Synopsis options=Options? variables=Variables? explanation=Explanation?
+    synopsis=Synopsis options*=Option variables=Variables? explanation=Explanation?
 ;
 
 // ****** this rules includes keywords that needed to match first. *****
@@ -9,8 +9,8 @@ Synopsis:
     "e-synopsis" ":" command=Word statement=Statement "e-end"
 ;
 
-Options:
-    "e-options" ":" pairs*=OptionPair "e-end"
+Option:
+    "e-options" name=Word ":" pairs*=OptionPair "e-end"
 ;
 
 Variables:
@@ -30,7 +30,7 @@ Type:
 ;
 
 TypeName:
-    'INT' | 'FLOAT' | 'STRICTFLOAT' | 'BOOL' | 'STRING' | 'NOTWHITESPACE' | 'VERSION' | 'PATH' | 'DIR' | 'PKG'
+    'INT' | 'FLOAT' | 'BOOL' | 'STRING' | 'ANY' | /\/[\s\S]+?\// | 'VERSION' | 'PATH' | 'DIR' | 'PKG'
 ;
 
 // Since an UnorderedStatement can be an element of a SequentialStatement, we put UnorderedStatement
@@ -60,11 +60,11 @@ SingleOption:
 ;
 
 ShortOption:
-    dash='-' option=Word (equal='=' type=Type (multi='+')?)?
+    dash='-' option=Word ((multi_times='+')? equal='=' type=Type (multi_values='+')?)?
 ;
 
 LongOption:
-    dash='--' option=Word (equal='=' type=Type (multi='+')?)?
+    dash='--' option=Word ((multi_times='+')? equal='=' type=Type (multi_values='+')?)?
 ;
 
 
@@ -89,7 +89,11 @@ PlaceHolder:
 
 // todo: when ":" occurs, at least one of OptionalCollection and Specification has to occurs
 OptionPair:
-    key=Word2 (":" optional_collection=OptionalCollection? specification=Specification?)?
+    key=Word2 (colon=":" option_session_collection=OptionSessionCollection)?
+;
+ 
+OptionSessionCollection:
+    ('[' single_options += SingleOption['|'] ']')? specification=Specification?
 ;
 
 
@@ -111,7 +115,7 @@ ExplanationValue[noskipws]:
 
 // ****************************** Specification ************************************
 Specification:
-    '(' (after=After? before=Before? always=Always? mutex=Mutex? info=Info?)#[','] (","? noskipws=NoSkipWS)? ')'
+    '(' (after=After? before=Before? always=Always? mutex=Mutex? info=Info?)#[','] (","? nws="NWS")? ')'
 ;
 
 
@@ -153,10 +157,6 @@ OtherKeyValue:
 
 StringOrVar:
     string=STRING | var=Word
-;
-
-NoSkipWS:
-    "noskipws"
 ;
 
 Item:

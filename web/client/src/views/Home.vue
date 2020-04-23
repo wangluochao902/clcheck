@@ -24,7 +24,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import Editor from "../components/Editor.vue";
 
 export default {
@@ -37,7 +36,7 @@ export default {
       language: "shell",
       // height: "400px",
       // width: "100px",
-      path: "http://127.0.0.1:5001/clcheck/",
+      path: "http://127.0.0.1:5000/clcheck/",
       error: {
         code: "",
         marker: ""
@@ -55,53 +54,6 @@ export default {
   },
 
   methods: {
-    clcheck(code) {
-      console.log("receive the event" + code);
-      axios({
-        method: "POST",
-        url: this.path,
-        headers: { "Content-Type": "application/json" },
-        data: { code: code }
-      }).then(
-        res => {
-          console.log("inside axios");
-          console.log(res);
-          this.error = res.data.error;
-          console.log(res.data.commandRange);
-          this.commandRange = res.data.commandRange;
-          console.log(this.commandRange);
-          console.log("end axios");
-        },
-        error => {
-          console.log("can not access");
-          console.log(error);
-          this.error = {
-            code: "",
-            marker: ""
-          };
-          this.commandRange = {};
-        }
-      );
-    },
-
-    explain(commandName, word) {
-      console.log("receive the explain event");
-      axios({
-        method: "POST",
-        url: this.path+"explain/",
-        headers: { "Content-Type": "application/json" },
-        data: { commandName: commandName, key: word }
-      }).then(
-        res => {
-          this.explanation = res.data.explanation;
-        },
-        error => {
-          console.log("can not get explanation");
-          console.log(error);
-          this.explanation = "";
-        }
-      );
-    }
   },
   created() {
     console.log("started");
@@ -118,7 +70,7 @@ export default {
   border-color: grey;
   border-style: solid;
   height: 400px;
-  width: 50%;
+  width: 70%;
   margin: 0 auto;
 }
 </style>

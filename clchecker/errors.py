@@ -1,3 +1,11 @@
+import re
+
+    
+def reverse_python_re_escape(m):
+    string = m.group(1)
+    return re.sub(r'\\(.)', r'\1', string)
+
+
 class CLError(Exception):
     def __init__(self, message, start_line=None, start_col=None,
                  end_line=None, end_col=None, abs_start=None, abs_end=None, err_type=None, filename=None):
@@ -10,7 +18,21 @@ class CLError(Exception):
         self.abs_end = abs_end
         self.err_type = err_type
         self.filename = filename
+
+        # todo: make message more readable
+        pkg = "'[^=\\s]+'".encode().decode()
+        message = message.replace(pkg, "VERSION")
+
+        # replace look-ahead and look-behind in regex
+        # '(?<!(\\w|\\-))\\-\\-quiet(?!(\\w|\\-))' will become '--quiet'
+        look_behide = re.escape('(?<!(\w|\-))')
+        look_ahead = re.escape('(?!(\w|\-))')
+        pattern = look_behide + r'(.*?)' + look_ahead
+        message = re.sub(pattern, reverse_python_re_escape, message)
+
+        message = re.sub(r'position \(([1-9]*), ([1-9]*)\)', f'the position of the star(*) in' , message)
         self.message = message
+
 
     def __str__(self):
         if self.start_line or self.start_col or self.filename:
