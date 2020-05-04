@@ -1,0 +1,824 @@
+//AUTO GENERATED FILE
+// DSL for command "tar"
+
+Main_Rule:
+	command=SubCommand_0 statement=SequentialStatement_17
+;
+
+REGEX_0:
+	/(?<=( |\t))\-(?=( |\t|$))/
+;
+
+SequentialStatement_0:
+	element0=REGEX_0
+;
+
+ShortOptionWithoutValue_option_key_0:
+	option_key="A"
+;
+
+ShortOptionWithoutValue_0[noskipws]:
+	/[ 	]*/- option_key="A" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_0:
+	option_key="catenate"
+;
+
+LongOptionWithoutValue_0[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-catenate(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_1:
+	option_key="concatenate"
+;
+
+LongOptionWithoutValue_1[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-concatenate(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_0:
+	choice1=LongOptionWithoutValue_0 | choice2=LongOptionWithoutValue_1
+;
+
+OptionItem_0:
+	item=OptionSyntax_0
+;
+
+ShortOptionWithoutValue_option_key_1:
+	option_key="c"
+;
+
+ShortOptionWithoutValue_1[noskipws]:
+	/[ 	]*/- option_key="c" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_2:
+	option_key="create"
+;
+
+LongOptionWithoutValue_2[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-create(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_1:
+	choice1=LongOptionWithoutValue_2
+;
+
+OptionItem_1:
+	item=OptionSyntax_1
+;
+
+ShortOptionWithoutValue_option_key_2:
+	option_key="d"
+;
+
+ShortOptionWithoutValue_2[noskipws]:
+	/[ 	]*/- option_key="d" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_3:
+	option_key="diff"
+;
+
+LongOptionWithoutValue_3[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-diff(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_4:
+	option_key="compare"
+;
+
+LongOptionWithoutValue_4[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-compare(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_2:
+	choice1=LongOptionWithoutValue_3 | choice2=LongOptionWithoutValue_4
+;
+
+OptionItem_2:
+	item=OptionSyntax_2
+;
+
+LongOptionWithoutValue_option_key_5:
+	option_key="delete"
+;
+
+LongOptionWithoutValue_5[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-delete(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_3:
+	choice0=LongOptionWithoutValue_5
+;
+
+OptionItem_3:
+	item=OptionSyntax_3
+;
+
+ShortOptionWithoutValue_option_key_3:
+	option_key="r"
+;
+
+ShortOptionWithoutValue_3[noskipws]:
+	/[ 	]*/- option_key="r" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_6:
+	option_key="append"
+;
+
+LongOptionWithoutValue_6[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-append(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_4:
+	choice1=LongOptionWithoutValue_6
+;
+
+OptionItem_4:
+	item=OptionSyntax_4
+;
+
+ShortOptionWithoutValue_option_key_4:
+	option_key="t"
+;
+
+ShortOptionWithoutValue_4[noskipws]:
+	/[ 	]*/- option_key="t" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_7:
+	option_key="list"
+;
+
+LongOptionWithoutValue_7[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-list(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_5:
+	choice1=LongOptionWithoutValue_7
+;
+
+OptionItem_5:
+	item=OptionSyntax_5
+;
+
+LongOptionWithoutValue_option_key_8:
+	option_key="test-label"
+;
+
+LongOptionWithoutValue_8[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-test\-label(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_6:
+	choice0=LongOptionWithoutValue_8
+;
+
+OptionItem_6:
+	item=OptionSyntax_6
+;
+
+ShortOptionWithoutValue_option_key_5:
+	option_key="u"
+;
+
+ShortOptionWithoutValue_5[noskipws]:
+	/[ 	]*/- option_key="u" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_9:
+	option_key="update"
+;
+
+LongOptionWithoutValue_9[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-update(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_7:
+	choice1=LongOptionWithoutValue_9
+;
+
+OptionItem_7:
+	item=OptionSyntax_7
+;
+
+ShortOptionWithoutValue_option_key_6:
+	option_key="x"
+;
+
+ShortOptionWithoutValue_6[noskipws]:
+	/[ 	]*/- option_key="x" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_10:
+	option_key="extract"
+;
+
+LongOptionWithoutValue_10[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-extract(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_11:
+	option_key="get"
+;
+
+LongOptionWithoutValue_11[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-get(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_8:
+	choice1=LongOptionWithoutValue_10 | choice2=LongOptionWithoutValue_11
+;
+
+OptionItem_8:
+	item=OptionSyntax_8
+;
+
+LongOptionWithoutValue_option_key_12:
+	option_key="show-defaults"
+;
+
+LongOptionWithoutValue_12[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-show\-defaults(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_9:
+	choice0=LongOptionWithoutValue_12
+;
+
+OptionItem_9:
+	item=OptionSyntax_9
+;
+
+ShortOptionWithoutValue_option_key_7:
+	option_key="?"
+;
+
+ShortOptionWithoutValue_7[noskipws]:
+	/[ 	]*/- option_key="?" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_13:
+	option_key="help"
+;
+
+LongOptionWithoutValue_13[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-help(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_10:
+	choice1=LongOptionWithoutValue_13
+;
+
+OptionItem_10:
+	item=OptionSyntax_10
+;
+
+LongOptionWithoutValue_option_key_14:
+	option_key="usage"
+;
+
+LongOptionWithoutValue_14[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-usage(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_11:
+	choice0=LongOptionWithoutValue_14
+;
+
+OptionItem_11:
+	item=OptionSyntax_11
+;
+
+LongOptionWithoutValue_option_key_15:
+	option_key="version"
+;
+
+LongOptionWithoutValue_15[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-version(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_12:
+	choice0=LongOptionWithoutValue_15
+;
+
+OptionItem_12:
+	item=OptionSyntax_12
+;
+
+LongOptionWithoutValue_option_key_16:
+	option_key="check-device"
+;
+
+LongOptionWithoutValue_16[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-check\-device(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_13:
+	choice0=LongOptionWithoutValue_16
+;
+
+OptionItem_13:
+	item=OptionSyntax_13
+;
+
+ShortOptionWithValue_option_key_0:
+	option_key="g"
+;
+
+SequentialStatement_1:
+	element0=PATH
+;
+
+ShortOptionWithValue_0[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-g(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_1 /[ 	]*/-
+;
+
+NoLeftBoundaryShortOptionWithValue_0[noskipws]:
+	option_key=/g(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_1 /[ 	]*/-
+;
+
+LongOptionWithValue_option_key_0:
+	option_key="listed-incremental"
+;
+
+SequentialStatement_2:
+	element0=PATH
+;
+
+LongOptionWithValue_0[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-listed\-incremental(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_2 /[ 	]*/-
+;
+
+OptionSyntax_14:
+	choice1=LongOptionWithValue_0
+;
+
+OptionItem_14:
+	item=OptionSyntax_14
+;
+
+LongOptionWithValue_option_key_1:
+	option_key="hole-detection"
+;
+
+Value_0:
+	value="seek"
+;
+
+SequentialStatement_4:
+	element0=Value_0
+;
+
+Value_1:
+	value="raw"
+;
+
+SequentialStatement_5:
+	element0=Value_1
+;
+
+OneMustPresentCollection_0:
+	(statement0=SequentialStatement_4 | statement1=SequentialStatement_5)
+;
+
+SequentialStatement_3:
+	element0=OneMustPresentCollection_0
+;
+
+LongOptionWithValue_1[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-hole\-detection(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_3 /[ 	]*/-
+;
+
+OptionSyntax_15:
+	choice0=LongOptionWithValue_1
+;
+
+OptionItem_15:
+	item=OptionSyntax_15
+;
+
+ShortOptionWithoutValue_option_key_8:
+	option_key="G"
+;
+
+ShortOptionWithoutValue_8[noskipws]:
+	/[ 	]*/- option_key="G" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_17:
+	option_key="incremental"
+;
+
+LongOptionWithoutValue_17[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-incremental(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_16:
+	choice1=LongOptionWithoutValue_17
+;
+
+OptionItem_16:
+	item=OptionSyntax_16
+;
+
+LongOptionWithoutValue_option_key_18:
+	option_key="ignore-failed-read"
+;
+
+LongOptionWithoutValue_18[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-ignore\-failed\-read(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_17:
+	choice0=LongOptionWithoutValue_18
+;
+
+OptionItem_17:
+	item=OptionSyntax_17
+;
+
+LongOptionWithValue_option_key_2:
+	option_key="level"
+;
+
+SequentialStatement_6:
+	element0=INT
+;
+
+LongOptionWithValue_2[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-level(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_6 /[ 	]*/-
+;
+
+OptionSyntax_18:
+	choice0=LongOptionWithValue_2
+;
+
+OptionItem_18:
+	item=OptionSyntax_18
+;
+
+ShortOptionWithoutValue_option_key_9:
+	option_key="n"
+;
+
+ShortOptionWithoutValue_9[noskipws]:
+	/[ 	]*/- option_key="n" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_19:
+	option_key="seek"
+;
+
+LongOptionWithoutValue_19[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-seek(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_19:
+	choice1=LongOptionWithoutValue_19
+;
+
+OptionItem_19:
+	item=OptionSyntax_19
+;
+
+LongOptionWithoutValue_option_key_20:
+	option_key="no-check-device"
+;
+
+LongOptionWithoutValue_20[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-no\-check\-device(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_20:
+	choice0=LongOptionWithoutValue_20
+;
+
+OptionItem_20:
+	item=OptionSyntax_20
+;
+
+LongOptionWithoutValue_option_key_21:
+	option_key="no-seek"
+;
+
+LongOptionWithoutValue_21[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-no\-seek(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_21:
+	choice0=LongOptionWithoutValue_21
+;
+
+OptionItem_21:
+	item=OptionSyntax_21
+;
+
+LongOptionWithoutValue_option_key_22:
+	option_key="occurrence"
+;
+
+LongOptionWithoutValue_22[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-occurrence(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithValue_option_key_3:
+	option_key="occurrence"
+;
+
+SequentialStatement_7:
+	element0=INT
+;
+
+LongOptionWithValue_3[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-occurrence(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_7 /[ 	]*/-
+;
+
+OptionSyntax_22:
+	choice0=LongOptionWithoutValue_22 | choice1=LongOptionWithValue_3
+;
+
+OptionItem_22:
+	item=OptionSyntax_22
+;
+
+LongOptionWithoutValue_option_key_23:
+	option_key="restrict"
+;
+
+LongOptionWithoutValue_23[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-restrict(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_23:
+	choice0=LongOptionWithoutValue_23
+;
+
+OptionItem_23:
+	item=OptionSyntax_23
+;
+
+LongOptionWithValue_option_key_4:
+	option_key="sparse-version"
+;
+
+REGEX_1:
+	/[0-9]+(\.[0-9]+)?/
+;
+
+SequentialStatement_8:
+	element0=REGEX_1
+;
+
+LongOptionWithValue_4[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-sparse\-version(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_8 /[ 	]*/-
+;
+
+OptionSyntax_24:
+	choice0=LongOptionWithValue_4
+;
+
+OptionItem_24:
+	item=OptionSyntax_24
+;
+
+ShortOptionWithoutValue_option_key_10:
+	option_key="S"
+;
+
+ShortOptionWithoutValue_10[noskipws]:
+	/[ 	]*/- option_key="S" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_24:
+	option_key="sparse"
+;
+
+LongOptionWithoutValue_24[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-sparse(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_25:
+	choice1=LongOptionWithoutValue_24
+;
+
+OptionItem_25:
+	item=OptionSyntax_25
+;
+
+ShortOptionWithoutValue_option_key_11:
+	option_key="v"
+;
+
+ShortOptionWithoutValue_11[noskipws]:
+	/[ 	]*/- option_key="v" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_25:
+	option_key="verbose"
+;
+
+LongOptionWithoutValue_25[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-verbose(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_26:
+	choice1=LongOptionWithoutValue_25
+;
+
+OptionItem_26:
+	item=OptionSyntax_26
+;
+
+ShortOptionWithValue_option_key_1:
+	option_key="f"
+;
+
+SequentialStatement_10:
+	element0=PATH
+;
+
+SequentialStatement_11:
+	element0=SequentialStatement_0
+;
+
+OneMustPresentCollection_1:
+	(statement0=SequentialStatement_10 | statement1=SequentialStatement_11)
+;
+
+SequentialStatement_9:
+	element0=OneMustPresentCollection_1
+;
+
+ShortOptionWithValue_1[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-f(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_9 /[ 	]*/-
+;
+
+NoLeftBoundaryShortOptionWithValue_1[noskipws]:
+	option_key=/f(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_9 /[ 	]*/-
+;
+
+LongOptionWithValue_option_key_5:
+	option_key="file"
+;
+
+SequentialStatement_13:
+	element0=PATH
+;
+
+SequentialStatement_14:
+	element0=SequentialStatement_0
+;
+
+OneMustPresentCollection_2:
+	(statement0=SequentialStatement_13 | statement1=SequentialStatement_14)
+;
+
+SequentialStatement_12:
+	element0=OneMustPresentCollection_2
+;
+
+LongOptionWithValue_5[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-file(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_12 /[ 	]*/-
+;
+
+OptionSyntax_27:
+	choice1=LongOptionWithValue_5
+;
+
+OptionItem_27:
+	item=OptionSyntax_27
+;
+
+ShortOptionWithValue_option_key_2:
+	option_key="C"
+;
+
+SequentialStatement_15:
+	element0=DIR
+;
+
+ShortOptionWithValue_2[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-C(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_15 /[ 	]*/-
+;
+
+NoLeftBoundaryShortOptionWithValue_2[noskipws]:
+	option_key=/C(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_15 /[ 	]*/-
+;
+
+LongOptionWithValue_option_key_6:
+	option_key="directory"
+;
+
+SequentialStatement_16:
+	element0=DIR
+;
+
+LongOptionWithValue_6[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-directory(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_16 /[ 	]*/-
+;
+
+OptionSyntax_28:
+	choice1=LongOptionWithValue_6
+;
+
+OptionItem_28:
+	item=OptionSyntax_28
+;
+
+AllShortOptionWithValueAtOptionSession_0:
+	choice0=ShortOptionWithValue_0 | choice1=ShortOptionWithValue_1 | choice2=ShortOptionWithValue_2
+;
+
+ShortOptionWithoutDash_0:
+	(short_option_without_dash0=ShortOptionWithoutValue_0 | short_option_without_dash1=ShortOptionWithoutValue_1 | short_option_without_dash2=ShortOptionWithoutValue_2 | short_option_without_dash3=ShortOptionWithoutValue_3 | short_option_without_dash4=ShortOptionWithoutValue_4 | short_option_without_dash5=ShortOptionWithoutValue_5 | short_option_without_dash6=ShortOptionWithoutValue_6 | short_option_without_dash7=ShortOptionWithoutValue_7 | short_option_without_dash8=ShortOptionWithoutValue_8 | short_option_without_dash9=ShortOptionWithoutValue_9 | short_option_without_dash10=ShortOptionWithoutValue_10 | short_option_without_dash11=ShortOptionWithoutValue_11)
+;
+
+AllShortOptionWithValueNoLeftBoundary0:
+	(choice0=NoLeftBoundaryShortOptionWithValue_0 | choice1=NoLeftBoundaryShortOptionWithValue_1 | choice2=NoLeftBoundaryShortOptionWithValue_2)
+;
+
+CombinedShortOption_0[noskipws]:
+	/[ 	]*/- "-" combined_short_options_without_dash+=ShortOptionWithoutDash_0 short_option_with_value=AllShortOptionWithValueNoLeftBoundary0? /[ 	]*/-
+;
+
+CombinedShortOption_Multi_0:
+	CombinedShortOptions+=CombinedShortOption_0
+;
+
+AllOptionChoice_0:
+	(choice29=AllShortOptionWithValueAtOptionSession_0 | choice30=CombinedShortOption_Multi_0 | choice0=OptionItem_0 | choice1=OptionItem_1 | choice2=OptionItem_2 | choice3=OptionItem_3 | choice4=OptionItem_4 | choice5=OptionItem_5 | choice6=OptionItem_6 | choice7=OptionItem_7 | choice8=OptionItem_8 | choice9=OptionItem_9 | choice10=OptionItem_10 | choice11=OptionItem_11 | choice12=OptionItem_12 | choice13=OptionItem_13 | choice14=OptionItem_14 | choice15=OptionItem_15 | choice16=OptionItem_16 | choice17=OptionItem_17 | choice18=OptionItem_18 | choice19=OptionItem_19 | choice20=OptionItem_20 | choice21=OptionItem_21 | choice22=OptionItem_22 | choice23=OptionItem_23 | choice24=OptionItem_24 | choice25=OptionItem_25 | choice26=OptionItem_26 | choice27=OptionItem_27 | choice28=OptionItem_28)
+;
+
+OptionSession_0:
+	all_option_choices+=AllOptionChoice_0
+;
+
+SubCommand_0:
+	value=/(?<!(\w|\-))tar(?!(\w|\-))/
+;
+
+TraditionalUsage:
+	short_option0=ShortOptionWithValue_option_key_0 | short_option1=ShortOptionWithValue_option_key_1 | short_option2=ShortOptionWithValue_option_key_2 | short_option3=ShortOptionWithoutValue_option_key_0 | short_option4=ShortOptionWithoutValue_option_key_1 | short_option5=ShortOptionWithoutValue_option_key_2 | short_option6=ShortOptionWithoutValue_option_key_3 | short_option7=ShortOptionWithoutValue_option_key_4 | short_option8=ShortOptionWithoutValue_option_key_5 | short_option9=ShortOptionWithoutValue_option_key_6 | short_option10=ShortOptionWithoutValue_option_key_7 | short_option11=ShortOptionWithoutValue_option_key_8 | short_option12=ShortOptionWithoutValue_option_key_9 | short_option13=ShortOptionWithoutValue_option_key_10 | short_option14=ShortOptionWithoutValue_option_key_11
+;
+
+TraditionalUsageArgument:
+	STRICTANY | /(?<=( |	))\-(?=( |	|$))/
+;
+
+TraditionalUsage_Muilt[noskipws]:
+	/[ 	]*/- short_options+=TraditionalUsage /[ 	]+/ arguments*=TraditionalUsageArgument /[ 	]*/-
+;
+
+SequentialStatement_18:
+	element0=TraditionalUsage_Muilt
+;
+
+OptionalCollection_0:
+	(statement0=SequentialStatement_18)
+;
+
+SequentialStatement_19:
+	element0=OptionSession_0
+;
+
+OptionalCollection_1:
+	(statement0=SequentialStatement_19)
+;
+
+STRICTANY_0_Multi:
+	types*=STRICTANY
+;
+
+SequentialStatement_17:
+	element0=OptionalCollection_0? element1=OptionalCollection_1? element2=STRICTANY_0_Multi
+;
+
+// base type for the DSL
+VERSION:
+    /(?!-)[^=\s]+/ | STRING
+;
+
+STRICTANY:
+    STRING | /(?<!(\w|\-))(?!-)[\S]+(?!(\w|\-))/
+;
+
+ANY:
+    STRING | /(?!-)[\S]+/
+;
+
+PATH:
+    /(?!-)\/?(\S*\/)*\S+/ | STRING
+;
+
+DIR:
+    /(?!-)\/?(\S*\/)*\S+\/?/ | STRING
+;
+
+PKG:
+//    /[\w\*][:\w\.\-\*\+]*/
+    /(?!-)[^=\s]+/
+;

@@ -1,25 +1,90 @@
 e-synopsis:
-    apt-get <options>
-    {
-        install <options> <pkg-with-optional-version>+ |
-        remove <options> <PKG>+  |
-        upgrade
-    } <options>
+    apt-get [<options>]
+    {   
+        update |
+        upgrade [<options>] <PKG>* |
+        full-upgrade |
+        dselect-upgrade |
+        dist-upgrade |
+        check |
+        clean <ANY>*|
+        autoclean |
+        autoremove [<options>] <PKG>* |
+        auto-remove [<options>] <PKG>* |
+        install [<options>] <pkg-with-optional-version>* |
+        remove [<options>] <PKG>*  |
+        purge [<options>] <PKG>* |
+        source [<options>] <pkg-with-optional-version>+ |
+        build-dep [<options>] <pkg-with-optional-version>+ |
+        download [<options>] <pkg-with-optional-version>+  |
+        <option-v> |
+        <option-h>
+    } [<options>]
+
+    e-variables:
+        e-let pkg-with-optional-version = {<PKG>["="<VERSION>]}(NWS)
+        e-let m1 = "dangerous option"
+    e-end
+e-end
+
+
+e-options option-v:
+    -v, --version
+        Show the program version.
+e-end
+
+e-options option-h:
+    -h, --help
+        Show a short usage summary.
 e-end
 
 e-options options:
-    -q: [-q=<INT> | -q | --quiet=<INT> | --quiet | -qq](mutex:[--print-urls, -s])
-    -s: [-s | --simulate | --just-print | --just-run | --recon | --no-act]
-    -y: [-y | --yes | --assume-yes]
-    --assume-no: (mutex:[-y])
-    --allow-downgrades: (warning:m1)
-    --print-urls
-    -o: [-o+=</\S+/> | --option+=</\S+/>]
-e-end
+    -q, --quiet
+    e-syntax:-q=<INT>, -q, --quiet=<INT>, --quiet, -qq e-end
+    e-spec: (mutex:[--print-uris, -s]) e-end
+        Quiet; produces output suitable for logging, omitting progress indicators. More q's will produce more quiet up to a maximum of 2. You can
+        also use -q=# to set the quiet level, overriding the configuration file. Note that quiet level 2 implies -y; you should never use -qq
+        without a no-action modifier such as -d, --print-uris or -s as APT may decide to do something you did not expect. Configuration Item:
+        quiet.
 
-e-variables:
-    pkg-with-optional-version = {<PKG> [= <VERSION>]}(NWS)
-    m1 = "dangerous option"
+    -s, --simulate, --just-print, --dry-run, --recon, --no-act
+        No action; perform a simulation of events that would occur based on the current system state but do not actually change the system. Locking
+        will be disabled (Debug::NoLocking) so the system state could change while apt-get is running. Simulations can also be executed by non-root
+        users which might not have read access to all apt configuration distorting the simulation. A notice expressing this warning is also shown
+        by default for non-root users (APT::Get::Show-User-Simulation-Note). Configuration Item: APT::Get::Simulate.
+
+        Simulated runs print out a series of lines, each representing a dpkg operation: configure (Conf), remove (Remv) or unpack (Inst). Square
+        brackets indicate broken packages, and empty square brackets indicate breaks that are of no consequence (rare).
+
+    -y, --yes, --assume-yes
+        Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively. If an undesirable situation, such as changing a
+        held package, trying to install a unauthenticated package or removing an essential package occurs then apt-get will abort. Configuration
+        Item: APT::Get::Assume-Yes.
+
+    --assume-no 
+    e-spec: (mutex:[-y]) e-end
+        Automatic "no" to all prompts. Configuration Item: APT::Get::Assume-No.
+
+    --allow-downgrades
+        This is a dangerous option that will cause apt to continue without prompting if it is doing downgrades. It should not be used except in
+        very special situations. Using it can potentially destroy your system! Configuration Item: APT::Get::allow-downgrades. Introduced in APT
+        1.1.
+
+    --print-uris
+        Instead of fetching the files to install their URIs are printed. Each URI will have the path, the destination file name, the size and the
+        expected MD5 hash. Note that the file name to write to will not always match the file name on the remote site! This also works with the
+        source and update commands. When used with the update command the MD5 and size are not included, and it is up to the user to decompress any
+        compressed files. Configuration Item: APT::Get::Print-URIs.
+
+    -o, --option
+    e-syntax:-o+=</\S+/>, --option+=</\S+/> e-end
+        Set a Configuration Option; This will set an arbitrary configuration option. The syntax is -o Foo::Bar=bar.  -o and --option can be used
+        multiple times to set different options.
+
+    e-variables:
+        e-let m1 = "dangerous option"
+        e-let pkg-with-optional-version = {<PKG> ["="<VERSION>]}(NWS)
+    e-end
 e-end
 
 e-explanation:

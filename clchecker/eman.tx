@@ -1,25 +1,26 @@
 eman:
-    synopsis=Synopsis options*=Option variables=Variables? explanation=Explanation?
+    synopsis=Synopsis options*=Option rules=Rules? explanation=Explanation?
 ;
 
 // ****** this rules includes keywords that needed to match first. *****
 // ****** We put them at the top to avoid potential conflict when *****
 // ************  multi rules apply at the same time *********
+// whitespace is a space or a tap (newline is excluded)
 Synopsis:
-    "e-synopsis" ":" command=Word statement=Statement "e-end"
+    "e-synopsis" ":"  command=SubCommand statement=Statement variables=Variables? "e-end" 
 ;
 
-Option:
-    "e-options" name=Word ":" pairs*=OptionPair "e-end"
+Option[ws='\t ']:
+    /\n*/- "e-options" name=Word ":" /\n*/- Comment* pairs+=OptionPair /\n*/- variables=Variables? /\n*/- "e-end" /\n*/-
 ;
 
-Variables:
-    "e-variables" ":" vars*=VariablePair "e-end"
+Rules:
+    "e-rules" ":" rules*=RulePair "e-end"
 ;
 
 Explanation[noskipws]:
     /\s*/-
-    "e-explanation" ":" /\n/  pairs*=ExplanationPair "e-end"
+    "e-explanation" ":" /\n*/-  pairs*=ExplanationPair /\n*/- "e-end"
     /\s*/-
 ;
 
@@ -30,7 +31,7 @@ Type:
 ;
 
 TypeName:
-    'INT' | 'FLOAT' | 'BOOL' | 'STRING' | 'ANY' | /\/[\s\S]+?\// | 'VERSION' | 'PATH' | 'DIR' | 'PKG'
+    'INT' | 'FLOAT' | 'BOOL' | 'STRING' | 'ANY' | 'sANY'| /\/[\s\S]+?\// | 'VERSION' | 'PATH' | 'DIR' | 'PKG' | 'sPATH' | 'sDIR' | 'sPKG'
 ;
 
 // Since an UnorderedStatement can be an element of a SequentialStatement, we put UnorderedStatement
@@ -48,64 +49,82 @@ SequentialStatement:
 ;
 
 Element:
-    sub_command=SubCommand  | equal="=" | type=Type (multi="+" | multi="*")? | single_option=SingleOption | unordered_statement=UnorderedStatement | collection=Collection (multi="+" | multi="*")? | placeholder=PlaceHolder (multi="+" | multi="*")?
+    sub_command=SubCommand  | string=STRING | type=Type (multi="+" | multi="*")? | unordered_statement=UnorderedStatement | collection=Collection (multi="+" | multi="*")? | placeholder=PlaceHolder (multi="+" | multi="*")?
 ;
 
 SubCommand:
-    value=Word (specification=Specification)?
+    value=Word
 ;
-
-SingleOption:
-    ShortOption | LongOption
-;
-
-ShortOption:
-    dash='-' option=Word ((multi_times='+')? equal='=' type=Type (multi_values='+')?)?
-;
-
-LongOption:
-    dash='--' option=Word ((multi_times='+')? equal='=' type=Type (multi_values='+')?)?
-;
-
 
 Collection:
     one_must_present_collection=OneMustPresentCollection | optional_collection=OptionalCollection
 ;
 
 OneMustPresentCollection:
-    '{' statements *= Statement['|'] '}' specification=Specification? 
+    '{' statements *= Statement['|'] '}' specification=Specification?
 ;
 
 OptionalCollection:
-    '[' statements *= Statement['|'] ']' specification=Specification? 
+    '[' statements *= Statement['|'] ']' specification=Specification?
 ;
 
 PlaceHolder:
     "<" value=Word2 ">"
 ;
 
+Variables[skipws]:
+    "e-variables" ":" /\n*/- vars*=VariablePair /\n*/- "e-end"
+;
+
+VariablePair[ws=' \n\t']:
+    "e-let" varname=/[\w-]+/ "=" statement=Statement
+;
+
 
 // ****************************** Option ************************************
 
-// todo: when ":" occurs, at least one of OptionalCollection and Specification has to occurs
-OptionPair:
-    key=Word2 (colon=":" option_session_collection=OptionSessionCollection)?
-;
- 
-OptionSessionCollection:
-    ('[' single_options += SingleOption['|'] ']')? specification=Specification?
+OptionPair[noskipws]:
+    /\t| {4}/- (key=Word2 colon=":")? option_item=OptionItem
 ;
 
-
-// ****************************** Variable ************************************
-VariablePair:
-    varname=/[\w-]+/ "=" value= /.*$/
+OptionItem[noskipws]:
+    option_text=OptionText option_syntax=OptionSyntax? option_specification=OptionSpecification? explanation_values+=ExplanationValue
 ;
 
+OptionText[skipws]:
+    single_options+=SingleOption[","] /\n/- | plaintext=Plaintext /\n/-
+;
+
+OptionSyntax[skipws]:
+    "e-syntax" ":" single_options+=SingleOption[","] "e-end" /\n/-
+;
+
+OptionSpecification[skipws]:
+    "e-spec" ":" specification=Specification "e-end" /\n/-
+;
+OptionExplanation[noskipws]:
+    /\t{2}| {8}|\t {4} | {4}\t/- explanation=/.*/ /\n/-
+;
+
+SingleOption[skipws]:
+    ShortOption | LongOption
+;
+
+ShortOption:
+    dash='-' option=Word (multi_times='+')? (equal='=' statement=Statement)?
+;
+
+LongOption:
+    dash='--' option=Word (multi_times='+')? (equal='=' statement=Statement)?
+;
+
+Plaintext:
+    !Keyword /.*/
+;
 
 // ****************************** Explanation ************************************
 ExplanationPair[noskipws]:
-    /\t| {4}/ keys*=Word2[/ *, */] / *\n/ values+=ExplanationValue /\n/?
+    /\t| {4}/ keys*=Word2[/ *, */] / *\n/ explanation_values+=ExplanationValue /\n/?
 ;
 
 ExplanationValue[noskipws]:
@@ -172,25 +191,30 @@ OneMustPresentItem:
 ;
 
 
+// ****************************** Rule ************************************
+RulePair:
+    key=Word ":" specification=Specification
+;
+
 // ****************************** Keyword ************************************
 
 
 
-// word that excludes keyword; letters, numbers, underscores or hyphen, but not starts with hyphen
+// word that excludes keyword; letters, numbers, underscores, hyphen or question mark, but not starts with hyphen
 Word:
-   !Keyword  /(?!-)[\w-]+/
+   !Keyword  /(?!-)[\?\w-]+/
 ;
 
-// word that excludes keyword; letters, numbers, underscores or hyphen, and can start with hyphen
+// word that excludes keyword; letters, numbers, underscores, hyphen or question mark, and can start with hyphen
 Word2:
-    !Keyword /[\w-]+/
+    !Keyword /[\?\w-]+/
 ;
 
 Keyword:
-    "e-variables" | "e-synopsis" | "e-options" | "e-explanation" | "e-end" | TypeName
+    "e-let" | "e-variables" | "e-synopsis" | "e-options" | "e-explanation" | "e-end" | "e-syntax" | "e-spec" | TypeName
 ;
 
 // ****************************** Comment ************************************
 Comment:
-    /[\t ]*\/\/.*$/
+    /[\t ]*\/\/.*\n?/
 ;

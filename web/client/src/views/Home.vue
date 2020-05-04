@@ -1,17 +1,13 @@
 <template>
   <div>
     <div style="text-align: center">
-      <br />
-      <br />
-      <h1>CLchecker</h1>
-      <h6>A linter for command line</h6>
-      <br />
-      <h6>Type/paste codes below to check bugs instantly</h6>
+      <h1>CLcheck</h1>
+      <p>A linter for command line. Type/paste codes below to check bugs instantly</p>
       <div>
         <span>Programming Language:</span>
         <select v-model="language">
-          <option>shell</option>
           <option>dockerfile</option>
+          <option>shell</option>
         </select>
       </div>
       <br />
@@ -29,7 +25,7 @@ import Editor from "../components/Editor.vue";
 export default {
   name: "Home",
   components: {
-    Editor
+    Editor,
   },
   data() {
     return {
@@ -39,7 +35,7 @@ export default {
       path: "http://127.0.0.1:5000/clcheck/",
       error: {
         code: "",
-        marker: ""
+        marker: "",
       },
       explanation: "",
       commandRange: {
@@ -47,29 +43,28 @@ export default {
           startLine: 1,
           endLine: 2,
           startColumn: 1,
-          endColumn: 10
-        }
-      }
+          endColumn: 10,
+        },
+      },
     };
   },
 
-  methods: {
-  },
+  methods: {},
   created() {
     console.log("started");
-  }
+  },
 };
 </script>
 
 <style>
-.content {
+.clcheckcontent {
   text-align: center;
   padding: 1em;
 }
 .editor {
   border-color: grey;
   border-style: solid;
-  height: 400px;
+  height: 600px;
   width: 70%;
   margin: 0 auto;
 }

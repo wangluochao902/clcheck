@@ -1,15 +1,38 @@
-from clchecker.store import Store
-from clchecker.errors import CLSemanticError, CLSyntaxError
-from textx import metamodel_from_str
-from clchecker.constants import BASETYPE
-import textx
+import re
 from collections import defaultdict
+
+import textx
+from textx import metamodel_from_str
+
+from clchecker.constants import BASETYPE
+from clchecker.errors import CLSemanticError, CLSyntaxError
+from clchecker.store import Store
 
 
 class CLchecker():
 
     def __init__(self, store):
         self.store = store
+        self.metamodel_cache = {}
+        self.new_lines_start = []
+
+    def assign_name_attr_to_actual_value(self, txobj):
+        clsname = txobj.__class__.__name__
+        if clsname == "str":
+            return txobj
+        if clsname == "list":
+            name_attr = ''.join(
+                [self.assign_name_attr_to_actual_value(obj) for obj in txobj])
+            return name_attr
+        if not hasattr(txobj, '_tx_attrs'):
+            return ""
+
+        name_attr = "".join([
+            self.assign_name_attr_to_actual_value(getattr(txobj, att))
+            for att in txobj._tx_attrs
+        ])
+        txobj.name = name_attr
+        return name_attr
 
     def check_after_before_always_mutex(self, ref, specs):
         # if ref is an OptionPair_key, it is not clear enough
@@ -46,7 +69,8 @@ class CLchecker():
 
                             raise CLSemanticError(
                                 f'Expect `{expected_string}` when `{clearer_ref}` occurs',
-                                **position)
+                                **position,
+                                severity="Error")
                     if rule_type == 'mutex':
                         not_excepted_but_occur_refs = [
                             r for r in rule_spec['all_must_present']
@@ -66,22 +90,51 @@ class CLchecker():
                                 not_excepted_but_occur_refs)
                             raise CLSemanticError(
                                 f"`{expected_string}` and `{clearer_ref}` can't occur at the same time",
-                                **position)
+                                **position,
+                                severity="Error")
 
                 # todo: before, after
+                if 'one_must_present' in rule_spec:
+                    if rule_type == 'always':
+                        has = False
+                        for r in self.all_occured_refs:
+                            if r in rule_spec['one_must_present']:
+                                has = True
+                                break
+                        if not has:
+                            raise CLSemanticError(
+                                f'except one of `{" | ".join(rule_spec["one_must_present"])}` when `{clearer_ref}` occurs',
+                                **position,
+                                severity="Error")
 
-    @staticmethod
-    def get_abs_position(commandline, line_num, col_num):
-        lines = commandline.split('\n')
-        abs_position = sum([len(line) + 1 for line in lines[:line_num - 1]
-                           ]) + col_num
-        return abs_position
+                # todo before, mutex, after
+
+    def get_abs_position(self, line_num, col_num):
+        return self.new_lines_start[line_num - 1] + col_num - 1
+
+    def convert_pos_to_linecol(self, abs_pos):
+        '''Use binary search to find the line number.
+        don't `have to` use binary search since len(self.new_lines_start) is usually smaller than 10'''
+        l, r = 0, len(self.new_lines_start) - 1
+        while l <= r:
+            if l == r:
+                line = l
+                break
+            mid = l + (r - l) // 2
+            if self.new_lines_start[mid] <= abs_pos and self.new_lines_start[
+                    mid + 1] > abs_pos:
+                line = mid
+                break
+            elif self.new_lines_start[mid] > abs_pos:
+                r = mid - 1
+            else:
+                l = mid + 1
+            # line number counts from 1
+        return line + 1, abs_pos - self.new_lines_start[line] + 1
 
     def get_position(self, obj):
-        start_line, start_col = self.model._tx_parser.pos_to_linecol(
-            obj._tx_position)
-        end_line, end_col = self.model._tx_parser.pos_to_linecol(
-            obj._tx_position_end)
+        start_line, start_col = self.convert_pos_to_linecol(obj._tx_position)
+        end_line, end_col = self.convert_pos_to_linecol(obj._tx_position_end)
         position = {
             "start_line": start_line,
             "start_col": start_col,
@@ -99,8 +152,7 @@ class CLchecker():
         """
         if hasattr(txobj, '_tx_attrs'):
             for name, attr in txobj._tx_attrs.items():
-                if name != 'command' and name != 'content' and attr.cont and getattr(
-                        txobj, name):
+                if name != 'content' and attr.cont and getattr(txobj, name):
                     obj = getattr(txobj, name)
                     clsname = obj.__class__.__name__
 
@@ -145,10 +197,12 @@ class CLchecker():
                         if ref in self.ref_to_txobj:
                             need_to_report = True
                             # if it is an option and has value attribute
-                            if clsname.startswith('ShortOption') and hasattr(obj, "value"):
+                            if (clsname.startswith('ShortOption') or clsname.startswith('LongOption')) and hasattr(
+                                    obj, "value"):
                                 OptionPair_key = self.option_keys_to_OptionPair_key[
                                     ref]
-                                for option_key, readable_syntax in self.OptionPair_key_to_option_keys_and_readable_syntax[OptionPair_key]:
+                                for option_key, readable_syntax in self.OptionPair_key_to_option_keys_and_readable_syntax[
+                                        OptionPair_key]:
                                     if option_key == ref and "+=" in readable_syntax:
                                         need_to_report = False
                                         break
@@ -156,7 +210,8 @@ class CLchecker():
                                 position = self.get_position(obj)
                                 raise CLSyntaxError(
                                     f"{ref} has presented previous in the `{self.command_name}` command",
-                                    **position)
+                                    **position,
+                                    severity='Warning')
                         self.ref_to_txobj[ref] = obj
                     if clsname.startswith('ShortOption') or clsname.startswith(
                             'LongOption'):
@@ -174,7 +229,8 @@ class CLchecker():
                         # the same OptionPair_key can only occur once except there is a '+=' in the option_key readable syntax
                         if OptionPair_key in self.occured_OptionPair_to_option_key:
                             need_to_report = True
-                            for option_key_, readable_syntax in self.OptionPair_key_to_option_keys_and_readable_syntax[OptionPair_key]:
+                            for option_key_, readable_syntax in self.OptionPair_key_to_option_keys_and_readable_syntax[
+                                    OptionPair_key]:
                                 if option_key == option_key_ and "+=" in readable_syntax:
                                     need_to_report = False
                                     break
@@ -183,33 +239,56 @@ class CLchecker():
                                 same_option_keys_and_readable_syntaxes = self.OptionPair_key_to_option_keys_and_readable_syntax[
                                     OptionPair_key]
                                 readable_syntaxes = [
-                                    i[1]
-                                    for i in same_option_keys_and_readable_syntaxes
+                                    i[1] for i in
+                                    same_option_keys_and_readable_syntaxes
                                 ]
                                 raise CLSyntaxError(
-                                    F"Only one of `{' | '.join(readable_syntaxes)}` can occur, since they have the same meaning",
-                                    **position)
+                                    F"Only one of `{' | '.join(readable_syntaxes)}` is enough, since they have the same meaning",
+                                    **position,
+                                    severity='Warning')
                         self.occured_OptionPair_to_option_key[
                             OptionPair_key] = option_key
 
                     self.update_ref_to_txobj(obj)
 
-    def check(self, command_name, commandline):
-        command_doc = self.store.findcommand(command_name)
-        if command_doc:
-            command_metamodel = metamodel_from_str(command_doc.tx_syntax +
-                                                   BASETYPE,
-                                                   autokwd=False)
+    def pre_process_commandline(self, commandline):
+
+        # replace windows-style newline with unix-style newline
+        commandline = commandline.replace('\r\n', ' \n')
+
+        # handle escaped newline
+        self.new_lines_start = [0] + [
+            m.end() for m in re.finditer(r'\\?\n', commandline)
+        ]
+        commandline = commandline.replace('\\\n', '  ')
+        return commandline
+
+    def check(self, command_name, commandline, debug=False):
+        # print(commandline.encode())
+        commandline = self.pre_process_commandline(commandline)
+        command_metamodel = None
+        if command_name in self.metamodel_cache:
+            command_metamodel, command_doc = self.metamodel_cache[command_name]
+        else:
+            command_doc = self.store.findcommand(command_name)
+            if command_doc:
+                command_metamodel = metamodel_from_str(command_doc.tx_syntax +
+                                                       BASETYPE,
+                                                       autokwd=False)
+                self.metamodel_cache[command_name] = (command_metamodel,
+                                                      command_doc)
+        if command_metamodel:
             try:
                 model = command_metamodel.model_from_str(commandline)
             except textx.TextXSyntaxError as e:
-                abs_start = self.get_abs_position(commandline, e.line, e.col)
+                abs_start = self.get_abs_position(e.line, e.col)
                 raise CLSyntaxError(e.message,
                                     start_line=e.line,
                                     start_col=e.col,
                                     abs_start=abs_start,
                                     err_type=e.err_type,
-                                    expected_rules=e.expected_rules)
+                                    expected_rules=e.expected_rules,
+                                    severity="Error")
             except textx.TextXSemanticError as e:
                 abs_start = self.get_abs_position(commandline, e.start_line,
                                                   e.end_line)
@@ -218,8 +297,10 @@ class CLchecker():
                                       start_col=e.col,
                                       abs_start=abs_start,
                                       err_type=e.err_type,
-                                      expected_obj_cls=e.expected_obj_cls)
-
+                                      expected_obj_cls=e.expected_obj_cls,
+                                      severity="Error")
+            if debug:
+                self.assign_name_attr_to_actual_value(model)
             self.model = model
             self.command_name = command_name
             self.ref_to_txobj = {}
@@ -228,12 +309,8 @@ class CLchecker():
             self.concrete_specs = command_doc.concrete_specs
             self.OptionPair_key_to_option_keys_and_readable_syntax = self.concrete_specs[
                 'OptionPair_key_to_option_keys_and_readable_syntax']
-            self.option_keys_to_OptionPair_key = {}
-            for OptionPair_key, option_keys_readable_syntaxes in self.OptionPair_key_to_option_keys_and_readable_syntax.items(
-            ):
-                for option_key, _ in option_keys_readable_syntaxes:
-                    self.option_keys_to_OptionPair_key[
-                        option_key] = OptionPair_key
+            self.option_keys_to_OptionPair_key = self.concrete_specs[
+                'option_keys_to_OptionPair_key']
 
             self.occured_OptionPair_to_option_key = {}
 
@@ -246,8 +323,25 @@ class CLchecker():
                     self.check_after_before_always_mutex(
                         ref, self.concrete_specs[ref])
 
-    def find_explanation(self, command_name, key):
+    def find_explanation(self, command_name, word):
         command_doc = self.store.findcommand(command_name)
         if command_doc:
-            if key in command_doc.explanation:
-                return command_doc.explanation[key]
+            Pair_key = None
+            found_key = word
+            if word in command_doc.concrete_specs[
+                    'explanation_key_to_ExplanationPair_key']:
+                Pair_key = command_doc.concrete_specs[
+                    'explanation_key_to_ExplanationPair_key'][word]
+            elif word in command_doc.concrete_specs[
+                    'option_keys_to_OptionPair_key']:
+                Pair_key = command_doc.concrete_specs[
+                    'option_keys_to_OptionPair_key'][word]
+            elif ("-"+word) in command_doc.concrete_specs[
+                    'option_keys_to_OptionPair_key']:
+                found_key = "-" + word
+                Pair_key = command_doc.concrete_specs[
+                    'option_keys_to_OptionPair_key'][found_key]
+            if Pair_key:
+                return found_key, command_doc.explanation[Pair_key]
+            else:
+                return None, None

@@ -1,79 +1,286 @@
 e-synopsis:
-    apt-get <options>
+    apt-get [<options>]
     {
         update |
-        upgrade <options> <PKG>* |
+        upgrade [<options>] <sPKG>* |
         full-upgrade |
         dselect-upgrade |
         dist-upgrade |
         check |
-        clean <ANY>*|
+        clean [<options>] <sANY>*|
         autoclean |
-        autoremove <options> <PKG>* |
-        auto-remove <options> <PKG>* |
-        install <options> <pkg-with-optional-version>+ |
-        remove <options> <PKG>*  |
-        purge <options> <PKG>* |
-        source <options> <pkg-with-optional-version>+ |
-        build-dep <options> <pkg-with-optional-version>+ |
-        download <options> <pkg-with-optional-version>+  |
-        {-v | --version} |
-        {-h | --help}
-    } <options>
+        autoremove [<options>] <sPKG>* |
+        auto-remove [<options>] <sPKG>* |
+        install [<options>] <pkg-with-optional-version>* |
+        remove [<options>] <sPKG>*  |
+        purge [<options>] <sPKG>* |
+        source [<options>] <pkg-with-optional-version>+ |
+        build-dep [<options>] <pkg-with-optional-version>+ |
+        download [<options>] <pkg-with-optional-version>+  |
+        <option-v> |
+        <option-h>
+    } [<options>]
+
+    e-variables:
+        e-let pkg-with-optional-version = {{<sPKG>["="<VERSION>]}(NWS) [<options>]}
+        e-let m1 = "dangerous option"
+    e-end
+e-end
+
+e-options option-v:
+    -v, --version
+        Show the program version.
+e-end
+
+e-options option-h:
+    -h, --help
+        Show a short usage summary.
 e-end
 
 e-options options:
     --no-install-recommends
+        Do not consider recommended packages as a dependency for installing. Configuration Item: APT::Install-Recommends.
+
+    --install-recommends
+        Consider recommended packages as a dependency for installing. Configuration Item: APT::Install-Recommends.
+
     --install-suggests
+        Consider suggested packages as a dependency for installing. Configuration Item: APT::Install-Suggests.
+
     --no-install-suggests
-    -d: [-d | --download-only]
-    -f: [-f | --fix-broken]
-    -m: [-m | --ignore-missing | --fix-missing]
-    --no-download: (mutex:[-d])
-    -q: [-q=<INT> | -q | --quiet=<INT> | --quiet | -qq](mutex:[-d, --print-urls, -s, --show-progress])
-    -s: [-s | --simulate | --just-print | --just-run | --recon | --no-act]
-    -y: [-y | --yes | --assume-yes]
-    --assume-no: (mutex:[-y])
-    --no-show-upgraded
-    -u: [-u | --show-upgraded](mutex:[--no-show-upgraded])
-    -V: [-V | --verbose-versions]
-    -a: [-a=<STRING> | --host-architecture=<STRING>](always:[-b, source])
-    -P: [-P | --build-profiles](always:[-b], after:[source])
-    -b: [-b | --compile | --build]
-    --ignore-hold:(always:[dist-upgrade])
-    --with-new-pkgs: (always:[upgrade])
-    --no-upgrade: (mutex:[--only-upgrade])
-    --only-upgrade
-    --allow-downgrades: (warning:m1)
-    --allow-remove-essential: (warning:"dangerous option")
-    --allow-change-held-packages: (warning:"dangerous option")
-    --force-yes: (warning:"dangerous option")
-    --print-urls
-    --purge: (after:[remove])
+        Do not consider suggested packages as a dependency for installing. Configuration Item: APT::Install-Suggests.
+
+    -d, --download-only
+        Download only; package files are only retrieved, not unpacked or installed. Configuration Item: APT::Get::Download-Only.
+
+    -f, --fix-broken
+        Fix; attempt to correct a system with broken dependencies in place. This option, when used with install/remove, can omit any packages to
+        permit APT to deduce a likely solution. If packages are specified, these have to completely correct the problem. The option is sometimes
+        necessary when running APT for the first time; APT itself does not allow broken package dependencies to exist on a system. It is possible
+        that a system's dependency structure can be so corrupt as to require manual intervention (which usually means using dpkg --remove to
+        eliminate some of the offending packages). Use of this option together with -m may produce an error in some situations. Configuration Item:
+        APT::Get::Fix-Broken.
+
+    -m, --ignore-missing, --fix-missing
+        Ignore missing packages; if packages cannot be retrieved or fail the integrity check after retrieval (corrupted package files), hold back
+        those packages and handle the result. Use of this option together with -f may produce an error in some situations. If a package is selected
+        for installation (particularly if it is mentioned on the command line) and it could not be downloaded then it will be silently held back.
+        Configuration Item: APT::Get::Fix-Missing.
+
+    --no-download
+    e-spec: (mutex:[-d]) e-end
+        Disables downloading of packages. This is best used with --ignore-missing to force APT to use only the .debs it has already downloaded.
+        Configuration Item: APT::Get::Download.
+
+    -q, --quiet
+    e-syntax:-q=<INT>, -q, --quiet=<INT>, --quiet, -qq e-end
+    e-spec: (mutex:[-d, --print-uris, -s, --show-progress]) e-end
+        Quiet; produces output suitable for logging, omitting progress indicators. More q's will produce more quiet up to a maximum of 2. You can
+        also use -q=# to set the quiet level, overriding the configuration file. Note that quiet level 2 implies -y; you should never use -qq
+        without a no-action modifier such as -d, --print-uris or -s as APT may decide to do something you did not expect. Configuration Item:
+        quiet.
+
+    -s, --simulate, --just-print, --dry-run, --recon, --no-act
+        No action; perform a simulation of events that would occur based on the current system state but do not actually change the system. Locking
+        will be disabled (Debug::NoLocking) so the system state could change while apt-get is running. Simulations can also be executed by non-root
+        users which might not have read access to all apt configuration distorting the simulation. A notice expressing this warning is also shown
+        by default for non-root users (APT::Get::Show-User-Simulation-Note). Configuration Item: APT::Get::Simulate.
+
+        Simulated runs print out a series of lines, each representing a dpkg operation: configure (Conf), remove (Remv) or unpack (Inst). Square
+        brackets indicate broken packages, and empty square brackets indicate breaks that are of no consequence (rare).
+
+    -y, --yes, --assume-yes
+        Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively. If an undesirable situation, such as changing a
+        held package, trying to install a unauthenticated package or removing an essential package occurs then apt-get will abort. Configuration
+        Item: APT::Get::Assume-Yes.
+
+    --assume-no 
+    e-spec: (mutex:[-y]) e-end
+        Automatic "no" to all prompts. Configuration Item: APT::Get::Assume-No.
+
+    --no-show-upgraded 
+        Do not show a list of all packages that are to be upgraded. Configuration Item: APT::Get::Show-Upgraded.
+    
+    -u, --show-upgraded
+    e-spec: (mutex:[--no-show-upgraded]) e-end
+        Show upgraded packages. Print out a list of all packages that are to be upgraded. Configuration Item: APT::Get::Show-Upgraded.
+    
+    -V, --verbose-versions
+        Show full versions for upgraded and installed packages. Configuration Item: APT::Get::Show-Versions.
+
+    -a, --host-architecture
+    e-syntax:-a=<STRING>, --host-architecture=<STRING> e-end
+        This option controls the architecture packages are built for by apt-get source --compile and how cross-builddependencies are satisfied. By
+        default is it not set which means that the host architecture is the same as the build architecture (which is defined by APT::Architecture).
+        Configuration Item: APT::Get::Host-Architecture.
+
+    -P, --build-profiles
+    e-spec: (always:[-b], after:[source]) e-end
+        This option controls the activated build profiles for which a source package is built by apt-get source --compile and how build
+        dependencies are satisfied. By default no build profile is active. More than one build profile can be activated at a time by concatenating
+        them with a comma. Configuration Item: APT::Build-Profiles.
+
+    -b, --compile, --build
+        Compile source packages after downloading them. Configuration Item: APT::Get::Compile.
+
+    --ignore-hold
+    e-spec: (always:[dist-upgrade]) e-end
+        Ignore package holds; this causes apt-get to ignore a hold placed on a package. This may be useful in conjunction with dist-upgrade to
+        override a large number of undesired holds. Configuration Item: APT::Ignore-Hold.
+
+    --with-new-pkgs
+    e-spec:(always:[upgrade]) e-end
+        Allow installing new packages when used in conjunction with upgrade. This is useful if the update of a installed package requires new
+        dependencies to be installed. Instead of holding the package back upgrade will upgrade the package and install the new dependencies. Note
+        that upgrade with this option will never remove packages, only allow adding new ones. Configuration Item: APT::Get::Upgrade-Allow-New.
+
+    --upgrade
+        Upgrade packages
+
+    --no-upgrade
+    e-spec: (mutex:[--only-upgrade]) e-end
+        Do not upgrade packages; when used in conjunction with install, no-upgrade will prevent packages on the command line from being upgraded if
+        they are already installed. Configuration Item: APT::Get::Upgrade.
+
+    --only-upgrade 
+        Do not install new packages; when used in conjunction with install, only-upgrade will install upgrades for already installed packages only
+        and ignore requests to install new packages. Configuration Item: APT::Get::Only-Upgrade.
+
+    --allow-downgrades
+    e-spec: (mutex:[--only-upgrade]) e-end
+        This is a dangerous option that will cause apt to continue without prompting if it is doing downgrades. It should not be used except in
+        very special situations. Using it can potentially destroy your system! Configuration Item: APT::Get::allow-downgrades. Introduced in APT
+        1.1.
+
+    --allow-remove-essential
+    e-spec:  (warning:"dangerous option") e-end
+        Force yes; this is a dangerous option that will cause apt to continue without prompting if it is removing essentials. It should not be used
+        except in very special situations. Using it can potentially destroy your system! Configuration Item: APT::Get::allow-remove-essential.
+        Introduced in APT 1.1.
+
+    --allow-change-held-packages
+    e-spec: (warning:"dangerous option") e-end
+        Force yes; this is a dangerous option that will cause apt to continue without prompting if it is changing held packages. It should not be
+        used except in very special situations. Using it can potentially destroy your system! Configuration Item:
+        APT::Get::allow-change-held-packages. Introduced in APT 1.1.
+
+    --force-yes
+    e-spec: (warning:"dangerous option") e-end
+        Force yes; this is a dangerous option that will cause apt to continue without prompting if it is doing something potentially harmful. It
+        should not be used except in very special situations. Using force-yes can potentially destroy your system! Configuration Item:
+        APT::Get::force-yes. This is deprecated and replaced by --allow-unauthenticated , --allow-downgrades , --allow-remove-essential ,
+        --allow-change-held-packages in 1.1.
+
+    --print-uris
+        Instead of fetching the files to install their URIs are printed. Each URI will have the path, the destination file name, the size and the
+        expected MD5 hash. Note that the file name to write to will not always match the file name on the remote site! This also works with the
+        source and update commands. When used with the update command the MD5 and size are not included, and it is up to the user to decompress any
+        compressed files. Configuration Item: APT::Get::Print-URIs.
+
+    --purge
+    e-spec: (after:[remove]) e-end
+        Use purge instead of remove for anything that would be removed. An asterisk ("*") will be displayed next to packages which are scheduled to
+        be purged.  remove --purge is equivalent to the purge command. Configuration Item: APT::Get::Purge.
+
     --reinstall
-    --list-cleanup: [--list-cleanup | --no-list-cleanup]
-    -t: [-t=<VERSION> | --target-RELEASE=<VERSION> | --default-RELEASE=<VERSION>]
-    --trivial-only: (mutex:[-y])
-    --no-remove: [--no-remove | --auto-remove](always:{install | remove}, mutex:[autoremove])
+        Re-install packages that are already installed and at the newest version. Configuration Item: APT::Get::ReInstall.
+
+    --list-cleanup
+        This option is on by default; use --no-list-cleanup to turn it off. When it is on, apt-get will automatically manage the contents of
+        /var/lib/apt/lists to ensure that obsolete files are erased. The only reason to turn it off is if you frequently change your sources list.
+        Configuration Item: APT::Get::List-Cleanup.
+
+    --no-list-cleanup
+        --list-cleanup is on by default; use --no-list-cleanup to turn it off. When it is on, apt-get will automatically manage the contents of
+        /var/lib/apt/lists to ensure that obsolete files are erased. The only reason to turn it off is if you frequently change your sources list.
+        Configuration Item: APT::Get::List-Cleanup.
+
+    -t, --target-release, --default-release
+    e-syntax:-t=<VERSION>, --target-release=<VERSION>, --default-release=<VERSION> e-end
+        This option controls the default input to the policy engine; it creates a default pin at priority 990 using the specified release string.
+        This overrides the general settings in /etc/apt/preferences. Specifically pinned packages are not affected by the value of this option. In
+        short, this option lets you have simple control over which distribution packages will be retrieved from. Some common examples might be -t
+        '2.1*', -t unstable or -t sid. Configuration Item: APT::Default-Release; see also the apt_preferences(5) manual page.
+
+    --trivial-only
+    e-spec: (mutex:[-y]) e-end
+        Only perform operations that are 'trivial'. Logically this can be considered related to --assume-yes; where --assume-yes will answer yes to
+        any prompt, --trivial-only will answer no. Configuration Item: APT::Get::Trivial-Only.
+
+    --no-remove
+    e-spec: (always:{install | remove}, mutex:[autoremove]) e-end
+        If any packages are to be removed apt-get immediately aborts without prompting. Configuration Item: APT::Get::Remove.
+
+    --auto-remove, --autoremove
+    e-spec: (always:{install | remove | purge | dist-upgrade | upgrade | dselect-upgrade | full-upgrade}, mutex:[autoremove]) e-end
+        If the command is either install or remove, then this option acts like running the autoremove command, removing unused dependency packages.
+        Configuration Item: APT::Get::AutomaticRemove.
+
     --only-source
-    --diff-dsc-tar-only: [--diff-only | --dsc-only | --tar-only]
+        Only has meaning for the source and build-dep commands. Indicates that the given source names are not to be mapped through the binary
+        table. This means that if this option is specified, these commands will only accept source package names as arguments, rather than
+        accepting binary package names and looking up the corresponding source package. Configuration Item: APT::Get::Only-Source.
+
+    --diff-only, --dsc-only, --tar-only
+        Download only the diff, dsc, or tar file of a source archive. Configuration Item: APT::Get::Diff-Only, APT::Get::Dsc-Only, and
+        APT::Get::Tar-Only.
+
     --arch-only
+        Only process architecture-dependent build-dependencies. Configuration Item: APT::Get::Arch-Only.
+
     --indep-only
+        Only process architecture-independent build-dependencies. Configuration Item: APT::Get::Indep-Only.
+
     --allow-unauthenticated
+        Ignore if packages can't be authenticated and don't prompt about it. This can be useful while working with local repositories, but is a
+        huge security risk if data authenticity isn't ensured in another way by the user itself. The usage of the Trusted option for
+        sources.list(5) entries should usually be preferred over this global override. Configuration Item: APT::Get::AllowUnauthenticated.
+
     --no-allow-insecure-repositories
-    --allow-insecure-repositories
+    e-spec: (mutex:[--no-allow-insecure-repositories]) e-end
+        Forbid the update command to acquire unverifiable data from configured sources. APT will fail at the update command for repositories
+        without valid cryptographically signatures. See also apt-secure(8) for details on the concept and the implications. Configuration Item:
+        Acquire::AllowInsecureRepositories.
+
+    --allow-insecure-repositories 
+        Forbid the update command to acquire unverifiable data from configured sources. APT will fail at the update command for repositories
+        without valid cryptographically signatures. See also apt-secure(8) for details on the concept and the implications. Configuration Item:
+        Acquire::AllowInsecureRepositories.
+
     --allow-releaseinfo-change
+        Allow the update command to continue downloading data from a repository which changed its information of the release contained in the
+        repository indicating e.g a new major release. APT will fail at the update command for such repositories until the change is confirmed to
+        ensure the user is prepared for the change. See also apt-secure(8) for details on the concept and configuration.
+
+        Specialist options (--allow-releaseinfo-change-field) exist to allow changes only for certain fields like origin, label, codename, suite,
+        version and defaultpin. See also apt_preferences(5). Configuration Item: Acquire::AllowReleaseInfoChange.
+
     --show-progress
-    --with-source: [--with-source=<PATH>+]
-    -c: [-c=<PATH> | --config-file=<PATH>]
-    -o: [-o+=</\S+/> | --option+=</\S+/>]
+        Show user friendly progress information in the terminal window when packages are installed, upgraded or removed. For a machine parsable
+        version of this data see README.progress-reporting in the apt doc directory. Configuration Items: Dpkg::Progress and Dpkg::Progress-Fancy.
+
+    --with-source
+        Adds the given file as a source for metadata. Can be repeated to add multiple files. See --with-source description in apt-cache(8) for
+        further details.
+
+    -c, --config-file
+    e-syntax:-c=<PATH>, --config-file=<PATH> e-end
+        Configuration File; Specify a configuration file to use. The program will read the default configuration file and then this configuration
+        file. If configuration settings need to be set before the default configuration files are parsed specify a file with the APT_CONFIG
+        environment variable. See apt.conf(5) for syntax information.
+
+    -o, --option
+    e-syntax:-o+=</\S+/>, --option+=</\S+/> e-end
+        Set a Configuration Option; This will set an arbitrary configuration option. The syntax is -o Foo::Bar=bar.  -o and --option can be used
+        multiple times to set different options.
+
+    
+    e-variables:
+        e-let pkg-with-optional-version = {<PKG>["="<VERSION>]}(NWS)
+        e-let m1 = "dangerous option"
+    e-end
 e-end
 
-
-e-variables:
-    pkg-with-optional-version = {<PKG> [= <VERSION>]}(NWS)
-    m1 = "dangerous option"
-e-end
 
 e-explanation:
     update
@@ -178,210 +385,6 @@ e-explanation:
     autoremove, auto-remove
         autoremove is used to remove packages that were automatically installed to satisfy dependencies for other packages and are now no longer
         needed.
-
-    --no-install-recommends
-        Do not consider recommended packages as a dependency for installing. Configuration Item: APT::Install-Recommends.
-
-    --install-suggests
-        Consider suggested packages as a dependency for installing. Configuration Item: APT::Install-Suggests.
-
-    --no-install-suggests
-        Do not consider suggested packages as a dependency for installing. Configuration Item: APT::Install-Suggests.
-
-    -d, --download-only
-        Download only; package files are only retrieved, not unpacked or installed. Configuration Item: APT::Get::Download-Only.
-
-    -f, --fix-broken
-        Fix; attempt to correct a system with broken dependencies in place. This option, when used with install/remove, can omit any packages to
-        permit APT to deduce a likely solution. If packages are specified, these have to completely correct the problem. The option is sometimes
-        necessary when running APT for the first time; APT itself does not allow broken package dependencies to exist on a system. It is possible
-        that a system's dependency structure can be so corrupt as to require manual intervention (which usually means using dpkg --remove to
-        eliminate some of the offending packages). Use of this option together with -m may produce an error in some situations. Configuration Item:
-        APT::Get::Fix-Broken.
-
-    -m, --ignore-missing, --fix-missing
-        Ignore missing packages; if packages cannot be retrieved or fail the integrity check after retrieval (corrupted package files), hold back
-        those packages and handle the result. Use of this option together with -f may produce an error in some situations. If a package is selected
-        for installation (particularly if it is mentioned on the command line) and it could not be downloaded then it will be silently held back.
-        Configuration Item: APT::Get::Fix-Missing.
-
-    --no-download
-        Disables downloading of packages. This is best used with --ignore-missing to force APT to use only the .debs it has already downloaded.
-        Configuration Item: APT::Get::Download.
-
-    -q, --quiet
-        Quiet; produces output suitable for logging, omitting progress indicators. More q's will produce more quiet up to a maximum of 2. You can
-        also use -q=# to set the quiet level, overriding the configuration file. Note that quiet level 2 implies -y; you should never use -qq
-        without a no-action modifier such as -d, --print-uris or -s as APT may decide to do something you did not expect. Configuration Item:
-        quiet.
-
-    -s, --simulate, --just-print, --dry-run, --recon, --no-act
-        No action; perform a simulation of events that would occur based on the current system state but do not actually change the system. Locking
-        will be disabled (Debug::NoLocking) so the system state could change while apt-get is running. Simulations can also be executed by non-root
-        users which might not have read access to all apt configuration distorting the simulation. A notice expressing this warning is also shown
-        by default for non-root users (APT::Get::Show-User-Simulation-Note). Configuration Item: APT::Get::Simulate.
-
-        Simulated runs print out a series of lines, each representing a dpkg operation: configure (Conf), remove (Remv) or unpack (Inst). Square
-        brackets indicate broken packages, and empty square brackets indicate breaks that are of no consequence (rare).
-
-    -y, --yes, --assume-yes
-        Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively. If an undesirable situation, such as changing a
-        held package, trying to install a unauthenticated package or removing an essential package occurs then apt-get will abort. Configuration
-        Item: APT::Get::Assume-Yes.
-
-    --assume-no
-        Automatic "no" to all prompts. Configuration Item: APT::Get::Assume-No.
-
-    --no-show-upgraded
-        Do not show a list of all packages that are to be upgraded. Configuration Item: APT::Get::Show-Upgraded.
-    
-    -u, --show-upgraded
-        Show upgraded packages. Print out a list of all packages that are to be upgraded. Configuration Item: APT::Get::Show-Upgraded.
-    
-    -V, --verbose-versions
-        Show full versions for upgraded and installed packages. Configuration Item: APT::Get::Show-Versions.
-
-    -a, --host-architecture
-        This option controls the architecture packages are built for by apt-get source --compile and how cross-builddependencies are satisfied. By
-        default is it not set which means that the host architecture is the same as the build architecture (which is defined by APT::Architecture).
-        Configuration Item: APT::Get::Host-Architecture.
-
-    -P, --build-profiles
-        This option controls the activated build profiles for which a source package is built by apt-get source --compile and how build
-        dependencies are satisfied. By default no build profile is active. More than one build profile can be activated at a time by concatenating
-        them with a comma. Configuration Item: APT::Build-Profiles.
-
-    -b, --compile, --build
-        Compile source packages after downloading them. Configuration Item: APT::Get::Compile.
-
-    --ignore-hold
-        Ignore package holds; this causes apt-get to ignore a hold placed on a package. This may be useful in conjunction with dist-upgrade to
-        override a large number of undesired holds. Configuration Item: APT::Ignore-Hold.
-
-    --with-new-pkgs
-        Allow installing new packages when used in conjunction with upgrade. This is useful if the update of a installed package requires new
-        dependencies to be installed. Instead of holding the package back upgrade will upgrade the package and install the new dependencies. Note
-        that upgrade with this option will never remove packages, only allow adding new ones. Configuration Item: APT::Get::Upgrade-Allow-New.
-
-    --no-upgrade
-        Do not upgrade packages; when used in conjunction with install, no-upgrade will prevent packages on the command line from being upgraded if
-        they are already installed. Configuration Item: APT::Get::Upgrade.
-
-    --only-upgrade
-        Do not install new packages; when used in conjunction with install, only-upgrade will install upgrades for already installed packages only
-        and ignore requests to install new packages. Configuration Item: APT::Get::Only-Upgrade.
-
-    --allow-downgrades
-        This is a dangerous option that will cause apt to continue without prompting if it is doing downgrades. It should not be used except in
-        very special situations. Using it can potentially destroy your system! Configuration Item: APT::Get::allow-downgrades. Introduced in APT
-        1.1.
-
-    --allow-remove-essential
-        Force yes; this is a dangerous option that will cause apt to continue without prompting if it is removing essentials. It should not be used
-        except in very special situations. Using it can potentially destroy your system! Configuration Item: APT::Get::allow-remove-essential.
-        Introduced in APT 1.1.
-
-    --allow-change-held-packages
-        Force yes; this is a dangerous option that will cause apt to continue without prompting if it is changing held packages. It should not be
-        used except in very special situations. Using it can potentially destroy your system! Configuration Item:
-        APT::Get::allow-change-held-packages. Introduced in APT 1.1.
-
-    --force-yes
-        Force yes; this is a dangerous option that will cause apt to continue without prompting if it is doing something potentially harmful. It
-        should not be used except in very special situations. Using force-yes can potentially destroy your system! Configuration Item:
-        APT::Get::force-yes. This is deprecated and replaced by --allow-unauthenticated , --allow-downgrades , --allow-remove-essential ,
-        --allow-change-held-packages in 1.1.
-
-    --print-uris
-        Instead of fetching the files to install their URIs are printed. Each URI will have the path, the destination file name, the size and the
-        expected MD5 hash. Note that the file name to write to will not always match the file name on the remote site! This also works with the
-        source and update commands. When used with the update command the MD5 and size are not included, and it is up to the user to decompress any
-        compressed files. Configuration Item: APT::Get::Print-URIs.
-
-    --purge
-        Use purge instead of remove for anything that would be removed. An asterisk ("*") will be displayed next to packages which are scheduled to
-        be purged.  remove --purge is equivalent to the purge command. Configuration Item: APT::Get::Purge.
-
-    --reinstall
-        Re-install packages that are already installed and at the newest version. Configuration Item: APT::Get::ReInstall.
-
-    --list-cleanup
-        This option is on by default; use --no-list-cleanup to turn it off. When it is on, apt-get will automatically manage the contents of
-        /var/lib/apt/lists to ensure that obsolete files are erased. The only reason to turn it off is if you frequently change your sources list.
-        Configuration Item: APT::Get::List-Cleanup.
-
-    -t, --target-release, --default-release
-        This option controls the default input to the policy engine; it creates a default pin at priority 990 using the specified release string.
-        This overrides the general settings in /etc/apt/preferences. Specifically pinned packages are not affected by the value of this option. In
-        short, this option lets you have simple control over which distribution packages will be retrieved from. Some common examples might be -t
-        '2.1*', -t unstable or -t sid. Configuration Item: APT::Default-Release; see also the apt_preferences(5) manual page.
-
-    --trivial-only
-        Only perform operations that are 'trivial'. Logically this can be considered related to --assume-yes; where --assume-yes will answer yes to
-        any prompt, --trivial-only will answer no. Configuration Item: APT::Get::Trivial-Only.
-
-    --no-remove
-        If any packages are to be removed apt-get immediately aborts without prompting. Configuration Item: APT::Get::Remove.
-
-    --auto-remove, --autoremove
-        If the command is either install or remove, then this option acts like running the autoremove command, removing unused dependency packages.
-        Configuration Item: APT::Get::AutomaticRemove.
-
-    --only-source
-        Only has meaning for the source and build-dep commands. Indicates that the given source names are not to be mapped through the binary
-        table. This means that if this option is specified, these commands will only accept source package names as arguments, rather than
-        accepting binary package names and looking up the corresponding source package. Configuration Item: APT::Get::Only-Source.
-
-    --diff-only, --dsc-only, --tar-only
-        Download only the diff, dsc, or tar file of a source archive. Configuration Item: APT::Get::Diff-Only, APT::Get::Dsc-Only, and
-        APT::Get::Tar-Only.
-
-    --arch-only
-        Only process architecture-dependent build-dependencies. Configuration Item: APT::Get::Arch-Only.
-
-    --indep-only
-        Only process architecture-independent build-dependencies. Configuration Item: APT::Get::Indep-Only.
-
-    --allow-unauthenticated
-        Ignore if packages can't be authenticated and don't prompt about it. This can be useful while working with local repositories, but is a
-        huge security risk if data authenticity isn't ensured in another way by the user itself. The usage of the Trusted option for
-        sources.list(5) entries should usually be preferred over this global override. Configuration Item: APT::Get::AllowUnauthenticated.
-
-    --no-allow-insecure-repositories
-        Forbid the update command to acquire unverifiable data from configured sources. APT will fail at the update command for repositories
-        without valid cryptographically signatures. See also apt-secure(8) for details on the concept and the implications. Configuration Item:
-        Acquire::AllowInsecureRepositories.
-
-    --allow-releaseinfo-change
-        Allow the update command to continue downloading data from a repository which changed its information of the release contained in the
-        repository indicating e.g a new major release. APT will fail at the update command for such repositories until the change is confirmed to
-        ensure the user is prepared for the change. See also apt-secure(8) for details on the concept and configuration.
-
-        Specialist options (--allow-releaseinfo-change-field) exist to allow changes only for certain fields like origin, label, codename, suite,
-        version and defaultpin. See also apt_preferences(5). Configuration Item: Acquire::AllowReleaseInfoChange.
-
-    --show-progress
-        Show user friendly progress information in the terminal window when packages are installed, upgraded or removed. For a machine parsable
-        version of this data see README.progress-reporting in the apt doc directory. Configuration Items: Dpkg::Progress and Dpkg::Progress-Fancy.
-
-    --with-source
-        Adds the given file as a source for metadata. Can be repeated to add multiple files. See --with-source description in apt-cache(8) for
-        further details.
-
-    -h, --help
-        Show a short usage summary.
-
-    -v, --version
-        Show the program version.
-
-    -c, --config-file
-        Configuration File; Specify a configuration file to use. The program will read the default configuration file and then this configuration
-        file. If configuration settings need to be set before the default configuration files are parsed specify a file with the APT_CONFIG
-        environment variable. See apt.conf(5) for syntax information.
-
-    -o, --option
-        Set a Configuration Option; This will set an arbitrary configuration option. The syntax is -o Foo::Bar=bar.  -o and --option can be used
-        multiple times to set different options.
 
     apt-get
         # To fetch package list:<br/>

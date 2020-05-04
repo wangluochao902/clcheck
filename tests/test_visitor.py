@@ -40,6 +40,19 @@ def test_synop1_mutex1(visitor_setup):
     assert command_range['apt-get']["startColumn"] == 1
     assert command_range['apt-get']["endColumn"] == 37
 
+def test_synop1_multi(visitor_setup):
+    visitor, translator  = visitor_setup
+    translator.translate(utils.eman1, save_to_db=True,
+                    save_to_file=True, save_dir=config.EMANDIR)
+    code = "apt-get -y install -y nodejs"
+    markers, command_range = visitor.start(code)
+    assert len(markers) == 1
+    assert markers[0]['startLineNumber'] == 1
+    assert markers[0]['startColumn'] ==21
+    assert markers[0]['endLineNumber'] == 1
+    assert markers[0]['endColumn'] == 22
+    assert markers[0]['message'] == "-y has presented previous in the `apt-get` command"
+    assert markers[0]['severity'] == 'Warning'
 
 def test_synop2_if(visitor_setup):
     visitor, translator  = visitor_setup
@@ -71,16 +84,16 @@ def test_textxparsing_error(visitor_setup):
                     save_to_file=True, save_dir=config.EMANDIR)
     code = """if [ 3 -gt 2 ]
 then 
-    apt-get -y install
+    apt-get -y download
 fi;"""
     markers, command_range = visitor.start(code)
     assert len(markers) == 1
     assert markers[0]['startLineNumber'] == 3
-    assert markers[0]['startColumn'] == 23
+    assert markers[0]['startColumn'] == 16
     assert markers[0]['endLineNumber'] == None
     assert markers[0]['endColumn'] == None
     message = markers[0]['message'] 
-    assert "Expected" in message and "PKG" in message and "at the position of the star(*) in => '-y install*'." in message
+    assert "Expected" in message and "at the position of the star(*) in => 'pt-get -y *download'." in message
     assert "'--quiet'" in message
     assert "'--just-print'" in message
     assert "'--simulate'" in message

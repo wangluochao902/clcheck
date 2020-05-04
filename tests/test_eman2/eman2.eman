@@ -1,0 +1,170 @@
+e-synopsis:
+    tar [<TRADITIONAL>] [<options>] <sANY>*
+e-end
+
+
+e-options options:
+    // Operation mode
+    // The options listed in the table below tell GNU tar what operation it is to perform.  Exactly one of them must be given.  Meaning of
+    // non-optional arguments depends on the operation mode requested.
+    -A, --catenate, --concatenate
+        Append archive to the end of another archive.  The arguments are treated as the names of archives to append.   All  archives
+        must  be of the same format as the archive they are appended to, otherwise the resulting archive might be unusable with non-
+        GNU implementations of tar.  Notice also that when more than one archive is given, the members from archives other than  the
+        first one will be accessible in the resulting archive only if using the -i (--ignore-zeros) option.
+
+        Compressed archives cannot be concatenated.
+
+    -c, --create
+        Create a new archive.  Arguments supply the names of the files to be archived.  Directories are archived recursively, unless
+        the --no-recursion option is given.
+
+    -d, --diff, --compare
+        Find differences between archive and file system.  The arguments are optional and specify archive members  to  compare.   If
+        not given, the current working directory is assumed.
+
+    --delete
+        Delete  from  the  archive.  The arguments supply names of the archive members to be removed.  At least one argument must be
+        given.
+
+        This option does not operate on compressed archives.  There is no short option equivalent.
+
+    -r, --append
+        Append files to the end of an archive.  Arguments have the same meaning as for -c (--create).
+
+    -t, --list
+        List the contents of an archive.  Arguments are optional.  When given, they specify the names of the members to list.
+
+    --test-label
+        Test the archive volume label and exit.  When used without arguments, it prints the volume label (if  any)  and  exits  with
+        status  0.   When one or more command line arguments are given.  tar compares the volume label with each argument.  It exits
+        with code 0 if a match is found, and with code 1 otherwise.  No output is  displayed,  unless  used  together  with  the  -v
+        (--verbose) option.
+
+        There is no short option equivalent for this option.
+
+    -u, --update
+        Append  files which are newer than the corresponding copy in the archive.  Arguments have the same meaning as with -c and -r
+        options.
+
+    -x, --extract, --get
+        Extract files from an archive.  Arguments are optional.  When given, they  specify  names  of  the  archive  members  to  be
+        extracted.
+
+    --show-defaults
+        Show built-in defaults for various tar options and exit.  No arguments are allowed.
+
+    -?, --help
+        Display a short option summary and exit.  No arguments allowed.
+
+    --usage
+        Display a list of available options and exit.  No arguments allowed.
+
+    --version
+        Print program version and copyright information and exit.
+
+    // Operation modifiers    
+    --check-device
+        Check device numbers when creating incremental archives (default).
+
+    -g, --listed-incremental=FILE
+    e-syntax: -g=<PATH>, --listed-incremental=<PATH> e-end
+        Handle  new  GNU-format  incremental  backups.  FILE is the name of a snapshot file, where tar stores additional information
+        which is used to decide which files changed since the previous incremental dump and, consequently, must be dumped again.  If
+        FILE  does  not exist when creating an archive, it will be created and all files will be added to the resulting archive (the
+        level 0 dump).  To create incremental archives of non-zero level N, create a copy of the snapshot file  created  during  the
+        level N-1, and use it as FILE.
+
+        When listing or extracting, the actual contents of FILE is not inspected, it is needed only due to syntactical requirements.
+        It is therefore common practice to use /dev/null in its place.
+
+    --hole-detection=METHOD
+    e-syntax: --hole-detection={seek | raw} e-end
+        Use METHOD to detect holes in sparse files.  This option implies --sparse.  Valid  values  for  METHOD  are  seek  and  raw.
+        Default is seek with fallback to raw when not applicable.
+
+    -G, --incremental
+        Handle old GNU-format incremental backups.
+
+    --ignore-failed-read
+        Do not exit with nonzero on unreadable files.
+
+	--level=NUMBER
+    e-syntax:--level=<INT> e-end
+        Set dump level for created listed-incremental archive.  Currently only --level=0 is meaningful: it instructs tar to truncate
+        the snapshot file before dumping, thereby forcing a level 0 dump.
+
+    -n, --seek
+        Assume the archive is seekable.  Normally tar determines automatically whether the archive  can  be  seeked  or  not.   This
+        option  is  intended  for use in cases when such recognition fails.  It takes effect only if the archive is open for reading
+        (e.g. with --list or --extract options).
+
+    --no-check-device
+        Do not check device numbers when creating incremental archives.
+
+    --no-seek
+        Assume the archive is not seekable.
+
+    --occurrence[=N]
+    e-syntax:--occurrence, --occurrence=<INT> e-end
+        Process only the Nth occurrence of each file in the archive.  This option is valid only when used with one of the  following
+        subcommands:  --delete,  --diff, --extract or --list and when a list of files is given either on the command line or via the
+        -T option.  The default N is 1.
+
+    --restrict
+        Disable the use of some potentially harmful options.
+
+    --sparse-version=MAJOR[.MINOR]
+    e-syntax:--sparse-version=</[0-9]+(\.[0-9]+)?/> e-end
+        Set version of the sparse format to use (implies --sparse).  This option implies --sparse.  Valid argument values  are  0.0,
+        0.1,  and  1.0.   For  a  detailed  discussion of sparse formats, refer to the GNU Tar Manual, appendix D, "Sparse Formats".
+        Using info reader, it can be accessed running the following command: info tar 'Sparse Formats'.
+
+    -S, --sparse
+        Handle sparse files efficiently.  Some files in the file system may have segments which were actually never  written  (quite
+        often  these  are  database files created by such systems as DBM).  When given this option, tar attempts to determine if the
+        file is sparse prior to archiving it, and if so, to reduce the resulting archive size by not  dumping  empty  parts  of  the
+        file.
+
+    -v, --verbose
+        Verbosely list files processed.
+
+    -f, --file=ARCHIVE
+    e-syntax:-f={<PATH>|<a-dash>}, --file={<PATH>|<a-dash>} e-end
+        Use  archive  file  or device ARCHIVE.  If this option is not given, tar will first examine the environment variable `TAPE'.
+        If it is set, its value will be used as the archive name.  Otherwise, tar will assume the compiled-in default.  The  default
+        value can be inspected either using the --show-defaults option, or at the end of the tar --help output.
+
+        An  archive  name that has a colon in it specifies a file or device on a remote machine.  The part before the colon is taken
+        as the machine name or IP address, and the part after it as the file or device pathname, e.g.:
+
+        --file=remotehost:/dev/sr0
+
+        An optional username can be prefixed to the hostname, placing a @ sign between them.
+
+        By default, the remote host is accessed via the rsh(1) command.  Nowadays it is common to use ssh(1) instead.  You can do so
+        by giving the following command line option:
+
+        --rsh-command=/usr/bin/ssh
+
+        The  remote  machine should have the rmt(8) command installed.  If its pathname does not match tar's default, you can inform
+        tar about the correct pathname using the --rmt-command option.
+    
+    -C, --directory=DIR
+    e-syntax:-C=<DIR>, --directory=<DIR> e-end
+        Change to DIR before performing any operations.  This option is order-sensitive, i.e. it affects all options that follow.
+
+    --strip-components=NUMBER
+    e-syntax:--strip-components=<INT> e-end
+        Strip NUMBER leading components from file names on extraction.
+
+
+    e-variables:
+        // a dash surrounded by whitespace or endofline
+        e-let a-dash = </(?<=( |\t))\-(?=( |\t|$))/>
+    e-end
+e-end
+
+e-rules:
+    tar: (always:{-A | -c | -d | --delete | -r | -t | --test-label | -u | -x | --show-defaults | -? | --usage | --version})
+e-end

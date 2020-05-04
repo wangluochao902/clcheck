@@ -8,7 +8,7 @@ def reverse_python_re_escape(m):
 
 class CLError(Exception):
     def __init__(self, message, start_line=None, start_col=None,
-                 end_line=None, end_col=None, abs_start=None, abs_end=None, err_type=None, filename=None):
+                 end_line=None, end_col=None, abs_start=None, abs_end=None, err_type=None, filename=None, severity=None):
         super().__init__(message.encode('utf-8'))
         self.start_line = start_line
         self.start_col = start_col
@@ -18,10 +18,15 @@ class CLError(Exception):
         self.abs_end = abs_end
         self.err_type = err_type
         self.filename = filename
+        self.severity= severity
 
         # todo: make message more readable
         pkg = "'[^=\\s]+'".encode().decode()
+        path = "(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\-\.]+".encode().decode()
+        dir = "(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\.\-]+(?:\/)?".encode().decode()
         message = message.replace(pkg, "VERSION")
+        message = message.replace(path, "PATH")
+        message = message.replace(dir, "DIR")
 
         # replace look-ahead and look-behind in regex
         # '(?<!(\\w|\\-))\\-\\-quiet(?!(\\w|\\-))' will become '--quiet'
@@ -43,17 +48,17 @@ class CLError(Exception):
 
 class CLSyntaxError(CLError):
     def __init__(self, message, start_line=None, start_col=None, end_line=None, end_col=None, abs_start=None, abs_end=None, err_type=None,
-                 expected_rules=None, filename=None):
+                 expected_rules=None, filename=None, severity=None):
         super().__init__(
-            message, start_line, start_col, end_line, end_col, err_type, filename)
+            message, start_line, start_col, end_line, end_col, err_type, filename, severity=severity)
         # Possible rules on this position
         self.expected_rules = expected_rules
 
 
 class CLSemanticError(CLError):
     def __init__(self, message, start_line=None, start_col=None, end_line=None, end_col=None, abs_start=None, abs_end=None, err_type=None,
-                 expected_obj_cls=None, filename=None):
+                 expected_obj_cls=None, filename=None, severity=None):
         super().__init__(
-            message, start_line, start_col, end_line, end_col, err_type, filename)
+            message, start_line, start_col, end_line, end_col, err_type, filename, severity=severity)
         # Expected object of class
         self.expected_obj_cls = expected_obj_cls

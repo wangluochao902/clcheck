@@ -2,147 +2,111 @@
 // DSL for command "apt-get"
 
 Main_Rule:
-	command=/(?<!(\w|\-))apt\-get(?!(\w|\-))/ statement=SequentialStatement_0
+	command=SubCommand_0 statement=SequentialStatement_12
 ;
 
-ShortOptionWithValue_0[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-q(?!(\w|\-))/ ("=" | /[ 	]+/) value=INT /[ 	]*/-
+ShortOptionWithoutValue_option_key_0:
+	option_key="v"
 ;
 
-ShortOptionWithoutValue_0:
-	option_key="q"
+ShortOptionWithoutValue_0[noskipws]:
+	/[ 	]*/- option_key="v" /[ 	]*/-
 ;
 
-LongOptionWithValue_0[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ ("=" | /[ 	]+/) value=INT /[ 	]*/-
+LongOptionWithoutValue_option_key_0:
+	option_key="version"
 ;
 
 LongOptionWithoutValue_0[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-version(?!(\w|\-))/ /[ 	]*/-
 ;
 
-ShortOptionWithoutValue_1:
-	option_key="qq"
+OptionSyntax_0:
+	choice1=LongOptionWithoutValue_0
 ;
 
-OptionSessionCollection_0:
-	(single_option2=LongOptionWithValue_0 | single_option3=LongOptionWithoutValue_0)
+OptionItem_0:
+	item=OptionSyntax_0
 ;
 
-ShortOptionWithoutValue_2:
-	option_key="s"
+ShortOptionWithoutDash_0:
+	(short_option_without_dash0=ShortOptionWithoutValue_0)
 ;
 
-LongOptionWithoutValue_1[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-simulate(?!(\w|\-))/ /[ 	]*/-
+CombinedShortOption_0[noskipws]:
+	/[ 	]*/- "-" combined_short_options_without_dash+=ShortOptionWithoutDash_0  /[ 	]*/-
 ;
 
-LongOptionWithoutValue_2[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-just\-print(?!(\w|\-))/ /[ 	]*/-
-;
-
-LongOptionWithoutValue_3[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-just\-run(?!(\w|\-))/ /[ 	]*/-
-;
-
-LongOptionWithoutValue_4[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-recon(?!(\w|\-))/ /[ 	]*/-
-;
-
-LongOptionWithoutValue_5[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-no\-act(?!(\w|\-))/ /[ 	]*/-
-;
-
-OptionSessionCollection_1:
-	(single_option1=LongOptionWithoutValue_1 | single_option2=LongOptionWithoutValue_2 | single_option3=LongOptionWithoutValue_3 | single_option4=LongOptionWithoutValue_4 | single_option5=LongOptionWithoutValue_5)
-;
-
-ShortOptionWithoutValue_3:
-	option_key="y"
-;
-
-LongOptionWithoutValue_6[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-yes(?!(\w|\-))/ /[ 	]*/-
-;
-
-LongOptionWithoutValue_7[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-assume\-yes(?!(\w|\-))/ /[ 	]*/-
-;
-
-OptionSessionCollection_2:
-	(single_option1=LongOptionWithoutValue_6 | single_option2=LongOptionWithoutValue_7)
-;
-
-LongOptionWithoutValue_8[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-assume\-no(?!(\w|\-))/ /[ 	]*/-
-;
-
-OptionSessionCollection_3:
-	(single_option0=LongOptionWithoutValue_8)
-;
-
-LongOptionWithoutValue_9[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-allow\-downgrades(?!(\w|\-))/ /[ 	]*/-
-;
-
-OptionSessionCollection_4:
-	(single_option0=LongOptionWithoutValue_9)
-;
-
-LongOptionWithoutValue_10[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-print\-urls(?!(\w|\-))/ /[ 	]*/-
-;
-
-OptionSessionCollection_5:
-	(single_option0=LongOptionWithoutValue_10)
-;
-
-REGEX_0:
-	/\S+/
-;
-
-ShortOptionWithValue_1[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-o(?!(\w|\-))/ ("=" | /[ 	]+/) value=REGEX_0 /[ 	]*/-
-;
-
-LongOptionWithValue_1[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-option(?!(\w|\-))/ ("=" | /[ 	]+/) value=REGEX_0 /[ 	]*/-
-;
-
-OptionSessionCollection_6:
-	(single_option1=LongOptionWithValue_1)
-;
-
-AllShortOptionWithValueAtOptionSession0:
-	choice0=ShortOptionWithValue_0 | choice1=ShortOptionWithValue_1
-;
-
-ShortOptionWithoutDash:
-	(short_option_without_dash0=ShortOptionWithoutValue_1 | short_option_without_dash1=ShortOptionWithoutValue_0 | short_option_without_dash2=ShortOptionWithoutValue_2 | short_option_without_dash3=ShortOptionWithoutValue_3)
-;
-
-CombinedShortOption[noskipws]:
-	/[ 	]*/- "-" combined_short_options_without_dash+=ShortOptionWithoutDash /[ 	]*/-
-;
-
-CombinedShortOption_Multi:
-	CombinedShortOptions+=CombinedShortOption
+CombinedShortOption_Multi_0:
+	CombinedShortOptions+=CombinedShortOption_0
 ;
 
 AllOptionChoice_0:
-	(choice8=AllShortOptionWithValueAtOptionSession0 | choice9=CombinedShortOption_Multi | choice1=OptionSessionCollection_0 | choice2=OptionSessionCollection_1 | choice3=OptionSessionCollection_2 | choice4=OptionSessionCollection_3 | choice5=OptionSessionCollection_4 | choice6=OptionSessionCollection_5 | choice7=OptionSessionCollection_6)
+	(choice1=CombinedShortOption_Multi_0 | choice0=OptionItem_0)
 ;
 
 OptionSession_0:
 	all_option_choices+=AllOptionChoice_0
 ;
 
-SubCommand_0:
-	value=/(?<!(\w|\-))install(?!(\w|\-))/
+ShortOptionWithoutValue_option_key_1:
+	option_key="h"
+;
+
+ShortOptionWithoutValue_1[noskipws]:
+	/[ 	]*/- option_key="h" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_1:
+	option_key="help"
+;
+
+LongOptionWithoutValue_1[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-help(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_1:
+	choice1=LongOptionWithoutValue_1
+;
+
+OptionItem_1:
+	item=OptionSyntax_1
+;
+
+ShortOptionWithoutDash_1:
+	(short_option_without_dash0=ShortOptionWithoutValue_1)
+;
+
+CombinedShortOption_1[noskipws]:
+	/[ 	]*/- "-" combined_short_options_without_dash+=ShortOptionWithoutDash_1  /[ 	]*/-
+;
+
+CombinedShortOption_Multi_1:
+	CombinedShortOptions+=CombinedShortOption_1
+;
+
+AllOptionChoice_1:
+	(choice1=CombinedShortOption_Multi_1 | choice0=OptionItem_1)
+;
+
+OptionSession_1:
+	all_option_choices+=AllOptionChoice_1
+;
+
+String_0:
+	"dangerous option"
+;
+
+SequentialStatement_0:
+	element0=String_0
+;
+
+String_1:
+	"="
 ;
 
 SequentialStatement_3:
-	element0="=" element1=VERSION
+	element0=String_1 element1=VERSION
 ;
 
 OptionalCollection_0:
@@ -153,64 +117,496 @@ SequentialStatement_2:
 	element0=PKG element1=OptionalCollection_0?
 ;
 
-OneMustPresentCollection_1[noskipws]:
+OneMustPresentCollection_0[noskipws]:
 	/[ 	]*/- (statement0=SequentialStatement_2) /[ 	]*/-
 ;
 
-OneMustPresentCollection_1_Multi:
-	collections+=OneMustPresentCollection_1
-;
-
 SequentialStatement_1:
-	element0=SubCommand_0 element1=OptionSession_0? element2=OneMustPresentCollection_1_Multi
+	element0=OneMustPresentCollection_0
 ;
 
-SubCommand_1:
-	value=/(?<!(\w|\-))remove(?!(\w|\-))/
-;
-
-PKG_0_Multi:
-	types+=PKG
+ShortOptionWithValue_option_key_0:
+	option_key="q"
 ;
 
 SequentialStatement_4:
-	element0=SubCommand_1 element1=OptionSession_0? element2=PKG_0_Multi
+	element0=INT
 ;
 
-SubCommand_2:
-	value=/(?<!(\w|\-))upgrade(?!(\w|\-))/
+ShortOptionWithValue_0[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-q(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_4 /[ 	]*/-
+;
+
+ShortOptionWithoutValue_option_key_2:
+	option_key="q"
+;
+
+ShortOptionWithoutValue_2[noskipws]:
+	/[ 	]*/- option_key="q" /[ 	]*/-
+;
+
+LongOptionWithValue_option_key_0:
+	option_key="quiet"
 ;
 
 SequentialStatement_5:
-	element0=SubCommand_2
+	element0=INT
 ;
 
-OneMustPresentCollection_0:
-	(statement0=SequentialStatement_1 | statement1=SequentialStatement_4 | statement2=SequentialStatement_5)
+LongOptionWithValue_0[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_5 /[ 	]*/-
 ;
 
-SequentialStatement_0:
-	element0=OptionSession_0? element1=OneMustPresentCollection_0 element2=OptionSession_0?
+LongOptionWithoutValue_option_key_2:
+	option_key="quiet"
+;
+
+LongOptionWithoutValue_2[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ /[ 	]*/-
+;
+
+ShortOptionWithoutValue_option_key_3:
+	option_key="qq"
+;
+
+ShortOptionWithoutValue_3[noskipws]:
+	/[ 	]*/- option_key="qq" /[ 	]*/-
+;
+
+OptionSyntax_2:
+	choice2=LongOptionWithValue_0 | choice3=LongOptionWithoutValue_2
+;
+
+OptionItem_2:
+	item=OptionSyntax_2
+;
+
+ShortOptionWithoutValue_option_key_4:
+	option_key="s"
+;
+
+ShortOptionWithoutValue_4[noskipws]:
+	/[ 	]*/- option_key="s" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_3:
+	option_key="simulate"
+;
+
+LongOptionWithoutValue_3[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-simulate(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_4:
+	option_key="just-print"
+;
+
+LongOptionWithoutValue_4[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-just\-print(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_5:
+	option_key="dry-run"
+;
+
+LongOptionWithoutValue_5[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-dry\-run(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_6:
+	option_key="recon"
+;
+
+LongOptionWithoutValue_6[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-recon(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_7:
+	option_key="no-act"
+;
+
+LongOptionWithoutValue_7[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-no\-act(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_3:
+	choice1=LongOptionWithoutValue_3 | choice2=LongOptionWithoutValue_4 | choice3=LongOptionWithoutValue_5 | choice4=LongOptionWithoutValue_6 | choice5=LongOptionWithoutValue_7
+;
+
+OptionItem_3:
+	item=OptionSyntax_3
+;
+
+ShortOptionWithoutValue_option_key_5:
+	option_key="y"
+;
+
+ShortOptionWithoutValue_5[noskipws]:
+	/[ 	]*/- option_key="y" /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_8:
+	option_key="yes"
+;
+
+LongOptionWithoutValue_8[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-yes(?!(\w|\-))/ /[ 	]*/-
+;
+
+LongOptionWithoutValue_option_key_9:
+	option_key="assume-yes"
+;
+
+LongOptionWithoutValue_9[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-assume\-yes(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_4:
+	choice1=LongOptionWithoutValue_8 | choice2=LongOptionWithoutValue_9
+;
+
+OptionItem_4:
+	item=OptionSyntax_4
+;
+
+LongOptionWithoutValue_option_key_10:
+	option_key="assume-no"
+;
+
+LongOptionWithoutValue_10[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-assume\-no(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_5:
+	choice0=LongOptionWithoutValue_10
+;
+
+OptionItem_5:
+	item=OptionSyntax_5
+;
+
+LongOptionWithoutValue_option_key_11:
+	option_key="allow-downgrades"
+;
+
+LongOptionWithoutValue_11[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-allow\-downgrades(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_6:
+	choice0=LongOptionWithoutValue_11
+;
+
+OptionItem_6:
+	item=OptionSyntax_6
+;
+
+LongOptionWithoutValue_option_key_12:
+	option_key="print-uris"
+;
+
+LongOptionWithoutValue_12[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-print\-uris(?!(\w|\-))/ /[ 	]*/-
+;
+
+OptionSyntax_7:
+	choice0=LongOptionWithoutValue_12
+;
+
+OptionItem_7:
+	item=OptionSyntax_7
+;
+
+ShortOptionWithValue_option_key_1:
+	option_key="o"
+;
+
+REGEX_0:
+	/\S+/
+;
+
+SequentialStatement_6:
+	element0=REGEX_0
+;
+
+ShortOptionWithValue_1[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-o(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_6 /[ 	]*/-
+;
+
+LongOptionWithValue_option_key_1:
+	option_key="option"
+;
+
+SequentialStatement_7:
+	element0=REGEX_0
+;
+
+LongOptionWithValue_1[noskipws]:
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-option(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_7 /[ 	]*/-
+;
+
+OptionSyntax_8:
+	choice1=LongOptionWithValue_1
+;
+
+OptionItem_8:
+	item=OptionSyntax_8
+;
+
+AllShortOptionWithValueAtOptionSession_2:
+	choice0=ShortOptionWithValue_0 | choice1=ShortOptionWithValue_1
+;
+
+ShortOptionWithoutDash_2:
+	(short_option_without_dash0=ShortOptionWithoutValue_3 | short_option_without_dash1=ShortOptionWithoutValue_2 | short_option_without_dash2=ShortOptionWithoutValue_4 | short_option_without_dash3=ShortOptionWithoutValue_5)
+;
+
+CombinedShortOption_2[noskipws]:
+	/[ 	]*/- "-" combined_short_options_without_dash+=ShortOptionWithoutDash_2  /[ 	]*/-
+;
+
+CombinedShortOption_Multi_2:
+	CombinedShortOptions+=CombinedShortOption_2
+;
+
+AllOptionChoice_2:
+	(choice7=AllShortOptionWithValueAtOptionSession_2 | choice8=CombinedShortOption_Multi_2 | choice0=OptionItem_2 | choice1=OptionItem_3 | choice2=OptionItem_4 | choice3=OptionItem_5 | choice4=OptionItem_6 | choice5=OptionItem_7 | choice6=OptionItem_8)
+;
+
+OptionSession_2:
+	all_option_choices+=AllOptionChoice_2
+;
+
+String_2:
+	"="
+;
+
+SequentialStatement_10:
+	element0=String_2 element1=VERSION
+;
+
+OptionalCollection_1:
+	(statement0=SequentialStatement_10)
+;
+
+SequentialStatement_9:
+	element0=PKG element1=OptionalCollection_1?
+;
+
+OneMustPresentCollection_1[noskipws]:
+	/[ 	]*/- (statement0=SequentialStatement_9) /[ 	]*/-
+;
+
+SequentialStatement_8:
+	element0=OneMustPresentCollection_1
+;
+
+String_3:
+	"dangerous option"
+;
+
+SequentialStatement_11:
+	element0=String_3
+;
+
+SubCommand_0:
+	value=/(?<!(\w|\-))apt\-get(?!(\w|\-))/
+;
+
+SequentialStatement_13:
+	element0=OptionSession_2
+;
+
+OptionalCollection_2:
+	(statement0=SequentialStatement_13)
+;
+
+SubCommand_1:
+	value=/(?<!(\w|\-))upgrade(?!(\w|\-))/
+;
+
+SequentialStatement_15:
+	element0=OptionSession_2
+;
+
+OptionalCollection_3:
+	(statement0=SequentialStatement_15)
+;
+
+PKG_0_Multi:
+	types*=PKG
+;
+
+SequentialStatement_14:
+	element0=SubCommand_1 element1=OptionalCollection_3? element2=PKG_0_Multi
+;
+
+SubCommand_2:
+	value=/(?<!(\w|\-))autoremove(?!(\w|\-))/
+;
+
+SequentialStatement_17:
+	element0=OptionSession_2
+;
+
+OptionalCollection_4:
+	(statement0=SequentialStatement_17)
+;
+
+PKG_1_Multi:
+	types*=PKG
+;
+
+SequentialStatement_16:
+	element0=SubCommand_2 element1=OptionalCollection_4? element2=PKG_1_Multi
+;
+
+SubCommand_3:
+	value=/(?<!(\w|\-))auto\-remove(?!(\w|\-))/
+;
+
+SequentialStatement_19:
+	element0=OptionSession_2
+;
+
+OptionalCollection_5:
+	(statement0=SequentialStatement_19)
+;
+
+PKG_2_Multi:
+	types*=PKG
+;
+
+SequentialStatement_18:
+	element0=SubCommand_3 element1=OptionalCollection_5? element2=PKG_2_Multi
+;
+
+SubCommand_4:
+	value=/(?<!(\w|\-))install(?!(\w|\-))/
+;
+
+SequentialStatement_21:
+	element0=OptionSession_2
+;
+
+OptionalCollection_6:
+	(statement0=SequentialStatement_21)
+;
+
+SequentialStatement_8_0_Multi:
+	placeholders*=SequentialStatement_8
+;
+
+SequentialStatement_20:
+	element0=SubCommand_4 element1=OptionalCollection_6? element2=SequentialStatement_8_0_Multi
+;
+
+SubCommand_5:
+	value=/(?<!(\w|\-))remove(?!(\w|\-))/
+;
+
+SequentialStatement_23:
+	element0=OptionSession_2
+;
+
+OptionalCollection_7:
+	(statement0=SequentialStatement_23)
+;
+
+PKG_3_Multi:
+	types*=PKG
+;
+
+SequentialStatement_22:
+	element0=SubCommand_5 element1=OptionalCollection_7? element2=PKG_3_Multi
+;
+
+SubCommand_6:
+	value=/(?<!(\w|\-))purge(?!(\w|\-))/
+;
+
+SequentialStatement_25:
+	element0=OptionSession_2
+;
+
+OptionalCollection_8:
+	(statement0=SequentialStatement_25)
+;
+
+PKG_4_Multi:
+	types*=PKG
+;
+
+SequentialStatement_24:
+	element0=SubCommand_6 element1=OptionalCollection_8? element2=PKG_4_Multi
+;
+
+SubCommand_7:
+	value=/(?<!(\w|\-))source(?!(\w|\-))/
+;
+
+SequentialStatement_27:
+	element0=OptionSession_2
+;
+
+OptionalCollection_9:
+	(statement0=SequentialStatement_27)
+;
+
+SequentialStatement_8_1_Multi:
+	placeholders+=SequentialStatement_8
+;
+
+SequentialStatement_26:
+	element0=SubCommand_7 element1=OptionalCollection_9? element2=SequentialStatement_8_1_Multi
+;
+
+SequentialStatement_28:
+	element0=OptionSession_0
+;
+
+SequentialStatement_29:
+	element0=OptionSession_1
+;
+
+OneMustPresentCollection_2:
+	(statement0=SequentialStatement_14 | statement1=SequentialStatement_16 | statement2=SequentialStatement_18 | statement3=SequentialStatement_20 | statement4=SequentialStatement_22 | statement5=SequentialStatement_24 | statement6=SequentialStatement_26 | statement7=SequentialStatement_28 | statement8=SequentialStatement_29)
+;
+
+SequentialStatement_30:
+	element0=OptionSession_2
+;
+
+OptionalCollection_10:
+	(statement0=SequentialStatement_30)
+;
+
+SequentialStatement_12:
+	element0=OptionalCollection_2? element1=OneMustPresentCollection_2 element2=OptionalCollection_10?
 ;
 
 // base type for the DSL
 VERSION:
-    /[^=\s]+/ | STRING
+    /(?!-)[^=\s]+/ | STRING
+;
+
+STRICTANY:
+    STRING | /(?<!(\w|\-))(?!-)[\S]+(?!(\w|\-))/
 ;
 
 ANY:
-    STRING | /[\S]+/
+    STRING | /(?!-)[\S]+/
 ;
 
 PATH:
-    /(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\-\.]+/ | STRING
+    /(?!-)\/?(\S*\/)*\S+/ | STRING
 ;
 
 DIR:
-    /(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\.\-]+(?:\/)?/ | STRING
+    /(?!-)\/?(\S*\/)*\S+\/?/ | STRING
 ;
 
 PKG:
 //    /[\w\*][:\w\.\-\*\+]*/
-    /[^=\s]+/
+    /(?!-)[^=\s]+/
 ;

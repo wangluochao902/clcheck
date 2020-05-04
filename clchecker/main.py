@@ -5,3 +5,4 @@ from clchecker.store import Store
 store = Store(db='clchecker')
 clchecker = CLchecker(store)
 visitor = Visitor(clchecker)
+
