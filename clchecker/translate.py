@@ -850,6 +850,7 @@ class Specification:
         self.concrete_specs = defaultdict(dict)
         self.clsname_to_readable_syntax = {}
         self.explanation = {}
+        self.concrete_specs['explanation_key_to_ExplanationPair_key'] = {}
 
     @staticmethod
     def start_and_end_with_quotes(string):
@@ -971,7 +972,6 @@ class Specification:
         return ''.join(values)
 
     def process_explanation_session(self, explanation):
-        self.concrete_specs['explanation_key_to_ExplanationPair_key'] = {}
         if explanation.pairs:
             for pair in explanation.pairs:
                 value = self.process_explanation_values(pair.explanation_values)

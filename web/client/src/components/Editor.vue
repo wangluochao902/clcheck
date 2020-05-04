@@ -54,15 +54,11 @@ export default {
     return {
       editor: null,
       lruCache: new LRUCache(1),
-      value:
-        "if [ 3 -gt 2 ]; \nthen\n    apt-get --assume-no install -y nodejs;\nfi;",
-      error: {
-        code: "",
-        marker: "",
-      },
+      value: "",
       errorMarkers: [],
       explanation: "",
       commandRange: {},
+      commandInfo: {},
     };
   },
 
@@ -82,13 +78,7 @@ export default {
     },
     language() {
       monaco.editor.setModelLanguage(this.editor.getModel(), this.language);
-      if (this.language == "shell") {
-        this.value =
-          "if [ 3 -gt 2 ]; \nthen\n    apt-get --assume-no install -y nodejs;\nfi;";
-      } else {
-        this.value =
-          "FROM ubuntu:16.04\nRUN apt-get --assume-no install -qqy nodejs &&\\\n    tar xvfsaeadf\n";
-      }
+      this.resetValue();
     },
     explanation() {},
     value() {
@@ -97,6 +87,16 @@ export default {
   },
 
   methods: {
+    resetValue(){
+      if (this.language == "shell") {
+        this.value =
+          "if [ 3 -gt 2 ]; \nthen\n    apt-get --assume-no install -y nodejs;\nfi;";
+      } else {
+        this.value =
+          "FROM ubuntu:16.04\nRUN apt-get --assume-no install -qqy nodejs &&\\\n    tar xvfsaeadf\n";
+      }
+    },
+
     provideHover(model, position) {
       console.log("new");
       console.log(position);
@@ -106,19 +106,24 @@ export default {
       if (commandName != null) {
         const words = this.getWords(model, position);
         console.log(words + "  is the word");
-        return this.explain(commandName, words).then((result) => {
-          if (result["explanation"] != "") {
-            console.log("this is the explanation: " + result["explanation"]);
-            return {
-              contents: [
-                { value: `**${result["found_key"]}**` },
-                {
-                  value: result["explanation"],
-                },
-              ],
-            };
+        var expl = this.find_explanation(commandName, words.word);
+        if (expl == null) {
+          expl = this.find_explanation(commandName, words.char);
+        }
+        if (expl != null) {
+          return {
+            contents: [
+              { value: `**${expl["found_key"]}**` },
+              {
+                value: "```python\n" + expl["explanation"] + "\n```",
+              },
+            ],
+          };
+        } else{
+          return {
+            contents:{value: `***${words.word}*`}
           }
-        });
+        }
       }
     },
 
@@ -191,19 +196,43 @@ export default {
       return modified_marker;
     },
 
+    find_explanation(commandName, word) {
+      const commandInfo = this.commandInfo[commandName];
+      if (commandInfo != null) {
+        var Pair_key = null;
+        var found_key = word;
+        if (word in commandInfo["explanation_key_to_ExplanationPair_key"])
+          Pair_key =
+            commandInfo["explanation_key_to_ExplanationPair_key"][word];
+        else if (word in commandInfo["option_keys_to_OptionPair_key"])
+          Pair_key = commandInfo["option_keys_to_OptionPair_key"][word];
+        else if ("-" + word in commandInfo["option_keys_to_OptionPair_key"]) {
+          found_key = "-" + word;
+          Pair_key = commandInfo["option_keys_to_OptionPair_key"][found_key];
+        }
+        if (Pair_key != null)
+          return {
+            found_key: found_key,
+            explanation: commandInfo.explanation[Pair_key],
+          };
+        return null;
+      }
+    },
+
     initMonaco() {
       this.editor = monaco.editor.create(document.getElementById("container"), {
         language: this.language,
         theme: "vs",
-        scrollBeyondLastLine: false,
+        scrollBeyondLastLine: true,
         minimap: { enabled: false },
         value: this.value,
-        hover: { delay: 1000 },
+        hover: { delay: 300 },
       });
       this.editor.onDidChangeModelContent(() => {
         this.clcheck(this.editor.getValue());
         console.log(this.editor.getValue().length);
       });
+      this.resetValue()
       monaco.languages.registerHoverProvider("shell", {
         provideHover: this.provideHover,
       });
@@ -273,22 +302,28 @@ export default {
             } else {
               this.checkCommand(commandline, commandName).then(
                 (res) => {
+                  const commandInfo = res.data.commandInfo;
+                  if (commandInfo != null) {
+                    this.commandInfo[commandName] = commandInfo;
+                  }
                   const marker = res.data.marker;
-                  const severityCode = monaco.MarkerSeverity[marker.severity];
-                  console.assert(
-                    severityCode != null,
-                    "marker.severty should be one of `Error`, `Warning`, `Info`, `Hint`"
-                  );
-                  marker.severity = severityCode;
-                  console.log("this is the marker");
-                  console.log(marker);
-                  this.lruCache.put(commandline, marker);
-                  const modified_marker = this.modify_marker(
-                    marker,
-                    start,
-                    shellStartPosition
-                  );
-                  this.errorMarkers.push(modified_marker);
+                  if (marker != null) {
+                    const severityCode = monaco.MarkerSeverity[marker.severity];
+                    console.assert(
+                      severityCode != null,
+                      "marker.severty should be one of `Error`, `Warning`, `Info`, `Hint`"
+                    );
+                    marker.severity = severityCode;
+                    console.log("this is the marker");
+                    console.log(marker);
+                    this.lruCache.put(commandline, marker);
+                    const modified_marker = this.modify_marker(
+                      marker,
+                      start,
+                      shellStartPosition
+                    );
+                    this.errorMarkers.push(modified_marker);
+                  }
                 },
                 (error) => {
                   console.log("can not access");

@@ -279,4 +279,15 @@ def test_explanation(translator_clchecker):
 
     word = "--assume-no"
     found_key, explanation = clchecker.find_explanation(command_name, word)
-    assert "install is followed by one or more packages desired for installation or upgrading" in explanation
+    assert 'Automatic "no"' in explanation
+
+def test_explanation2(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman2_full,
+                         save_to_db=True,
+                         save_to_file=True,
+                         save_dir=config.EMANDIR)
+    word = "-f"
+    command_name = 'tar'
+    found_key, explanation = clchecker.find_explanation(command_name, word)
+    assert "Use  archive  file  or device ARCHIVE." in explanation

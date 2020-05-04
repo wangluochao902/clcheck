@@ -1,0 +1,3 @@
+pymongo[srv]
+git+git://github.com/textX/textX.git@4c2cae23fd5aa0639c7d805c0b576e43a4acf1e6
+flask

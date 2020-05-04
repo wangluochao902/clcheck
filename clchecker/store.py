@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class Command:
-    def __init__(self, command_name, tx_syntax, clsname_to_readable_syntax, concrete_specs, explantion, eman):
+
+    def __init__(self, command_name, tx_syntax, clsname_to_readable_syntax,
+                 concrete_specs, explantion, eman):
         self.command_name = command_name
         self.tx_syntax = tx_syntax
         self.clsname_to_readable_syntax = clsname_to_readable_syntax
@@ -18,17 +20,25 @@ class Command:
 
     @classmethod
     def from_store(cls, doc):
-        return cls(doc['command_name'], doc['tx_syntax'], doc['clsname_to_readable_syntax'], doc['concrete_specs'], doc['explanation'], doc['eman'])
+        return cls(doc['command_name'], doc['tx_syntax'],
+                   doc['clsname_to_readable_syntax'], doc['concrete_specs'],
+                   doc['explanation'], doc['eman'])
 
     def to_store(self):
-        return {'command_name': self.command_name, 'tx_syntax': self.tx_syntax, 'clsname_to_readable_syntax': self.clsname_to_readable_syntax, 'concrete_specs': self.concrete_specs, "explanation": self.explanation, 'eman': self.eman}
+        return {
+            'command_name': self.command_name,
+            'tx_syntax': self.tx_syntax,
+            'clsname_to_readable_syntax': self.clsname_to_readable_syntax,
+            'concrete_specs': self.concrete_specs,
+            "explanation": self.explanation,
+            'eman': self.eman
+        }
 
 
 class Store():
     '''read/write from/to mongodb'''
 
     def __init__(self, db='clchecker', host=config.MONGO_URI):
-        logger.info('creating store, db = %r, host = %r', db, host)
         self.connection = pymongo.MongoClient(host)
         self.db = self.connection[db]
         self.commands = self.db['commands']
@@ -84,7 +94,8 @@ class Store():
         if self.findcommand(command.command_name) is not None:
             if not overwrite:
                 raise ValueError(
-                    f'command "{command.command_name}" is already in the database')
+                    f'command "{command.command_name}" is already in the database'
+                )
             else:
                 logger.warning(f'overwrite command {command.command_name}')
                 self.commands.replace_one(

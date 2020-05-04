@@ -13,7 +13,7 @@ class CLchecker():
 
     def __init__(self, store):
         self.store = store
-        self.metamodel_cache = {}
+        self.metamodel_doc_cache = {}
         self.new_lines_start = []
 
     def assign_name_attr_to_actual_value(self, txobj):
@@ -267,15 +267,15 @@ class CLchecker():
         # print(commandline.encode())
         commandline = self.pre_process_commandline(commandline)
         command_metamodel = None
-        if command_name in self.metamodel_cache:
-            command_metamodel, command_doc = self.metamodel_cache[command_name]
+        if command_name in self.metamodel_doc_cache:
+            command_metamodel, command_doc = self.metamodel_doc_cache[command_name]
         else:
             command_doc = self.store.findcommand(command_name)
             if command_doc:
                 command_metamodel = metamodel_from_str(command_doc.tx_syntax +
                                                        BASETYPE,
                                                        autokwd=False)
-                self.metamodel_cache[command_name] = (command_metamodel,
+                self.metamodel_doc_cache[command_name] = (command_metamodel,
                                                       command_doc)
         if command_metamodel:
             try:
@@ -343,5 +343,4 @@ class CLchecker():
                     'option_keys_to_OptionPair_key'][found_key]
             if Pair_key:
                 return found_key, command_doc.explanation[Pair_key]
-            else:
-                return None, None
+        return None, None

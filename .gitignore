@@ -1,3 +1,7 @@
 __pycache__
 node_modules
 inte.py
+dockerfiles
+app.yaml
+test_bash_parser
+tmp.py
