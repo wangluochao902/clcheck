@@ -1,0 +1,7 @@
+pymongo[srv]
+git+git://github.com/textX/textX.git@8466ca004681f53e20f77fa7cb85830f3288b4e9
+Flask
+bashlex
+dockerfile
+gunicorn
+flask_cors

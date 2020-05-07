@@ -53,7 +53,7 @@ export default {
   data() {
     return {
       editor: null,
-      lruCache: new LRUCache(1),
+      lruCache: new LRUCache(10),
       value: "",
       errorMarkers: [],
       explanation: "",
@@ -79,6 +79,7 @@ export default {
     language() {
       monaco.editor.setModelLanguage(this.editor.getModel(), this.language);
       this.resetValue();
+      this.lruCache = new LRUCache(10);
     },
     explanation() {},
     value() {
@@ -87,13 +88,19 @@ export default {
   },
 
   methods: {
-    resetValue(){
+    resetValue() {
       if (this.language == "shell") {
         this.value =
           "if [ 3 -gt 2 ]; \nthen\n    apt-get --assume-no install -y nodejs;\nfi;";
       } else {
         this.value =
-          "FROM ubuntu:16.04\nRUN apt-get --assume-no install -qqy nodejs &&\\\n    tar xvfsaeadf\n";
+          `FROM ubuntu:16.04
+RUN apt-get clean -y      && \\
+    apt-get autoclean -   && \\
+    apt-get autoremove -y && \\
+    rm -rf /debs && \\
+    tar xvffile.tar
+`;
       }
     },
 
@@ -119,10 +126,10 @@ export default {
               },
             ],
           };
-        } else{
+        } else {
           return {
-            contents:{value: `***${words.word}*`}
-          }
+            contents: { value: `***${words.word}*` },
+          };
         }
       }
     },
@@ -169,31 +176,37 @@ export default {
       return words;
     },
 
-    modify_marker(marker, start, shellStartPosition) {
-      const modified_marker = Object.assign({}, marker);
-      if (modified_marker.endLineNumber == null) {
-        modified_marker.endLineNumber = modified_marker.startLineNumber;
+    offset_position(start, position) {
+      if (position.start.row == 1) {
+        position.start.col += start.col - 1;
       }
-      if (modified_marker.endColumn == null) {
-        modified_marker.endColumn = modified_marker.startColumn + 1;
+      if (position.end.row == 1) {
+        position.end.col += start.col - 1;
+      }
+      position.start.row += start.row - 1;
+      position.end.row += start.row - 1;
+      return position
+    },
+
+    modifyMarker(marker, start) {
+      const modifiedMarker = Object.assign({}, marker);
+      if (modifiedMarker.endLineNumber == null) {
+        modifiedMarker.endLineNumber = modifiedMarker.startLineNumber;
+      }
+      if (modifiedMarker.endColumn == null) {
+        modifiedMarker.endColumn = modifiedMarker.startColumn + 1;
       }
 
-      if (modified_marker.startLineNumber == 1) {
-        modified_marker.startColumn += start.col - 1;
-        if (start.row == 1) {
-          modified_marker.startColumn += shellStartPosition.col - 1;
-        }
+      if (modifiedMarker.startLineNumber == 1) {
+        modifiedMarker.startColumn += start.col - 1;
       }
-      if (modified_marker.endLineNumber == 1) {
-        modified_marker.endColumn += start.col - 1;
-        if (start.row == 1) {
-          modified_marker.endColumn += shellStartPosition.col - 1;
-        }
+      if (modifiedMarker.endLineNumber == 1) {
+        modifiedMarker.endColumn += start.col - 1;
       }
-      modified_marker.startLineNumber += start.row + shellStartPosition.row - 2;
-      modified_marker.endLineNumber += start.row + shellStartPosition.row - 2;
+      modifiedMarker.startLineNumber += start.row - 1;
+      modifiedMarker.endLineNumber += start.row - 1;
 
-      return modified_marker;
+      return modifiedMarker;
     },
 
     find_explanation(commandName, word) {
@@ -232,7 +245,7 @@ export default {
         this.clcheck(this.editor.getValue());
         console.log(this.editor.getValue().length);
       });
-      this.resetValue()
+      this.resetValue();
       monaco.languages.registerHoverProvider("shell", {
         provideHover: this.provideHover,
       });
@@ -270,7 +283,7 @@ export default {
         traverse(ast, {
           Command: (node) => {
             const commandName = node.name.text;
-            const start = node.loc.start;
+            var start = node.loc.start;
             var end = node.loc.end;
             if (node.suffix) {
               var n;
@@ -283,27 +296,31 @@ export default {
                   end = n.loc.end;
               }
             }
+            const commandline = shellscript.slice(start.char, end.char + 1);
+            var position = {
+              start: start,
+              end: end
+            }
+            position = this.offset_position(shellStartPosition, position);
             this.commandRange.push({
               commandName: commandName,
-              start: start,
-              end: end,
+              start: position.start,
+              end: position.end,
             });
-            const commandline = shellscript.slice(start.char, end.char + 1);
             if (this.lruCache.has(commandline)) {
               const marker = this.lruCache.get(commandline);
               if (marker != null) {
-                const modified_marker = this.modify_marker(
+                const modifiedMarker = this.modifyMarker(
                   marker,
-                  start,
-                  shellStartPosition
+                  position.start
                 );
-                this.errorMarkers.push(modified_marker);
+                this.errorMarkers.push(modifiedMarker);
               }
             } else {
               this.checkCommand(commandline, commandName).then(
                 (res) => {
                   const commandInfo = res.data.commandInfo;
-                  if (commandInfo != null) {
+                  if (commandInfo.length > 0) {
                     this.commandInfo[commandName] = commandInfo;
                   }
                   const marker = res.data.marker;
@@ -317,12 +334,11 @@ export default {
                     console.log("this is the marker");
                     console.log(marker);
                     this.lruCache.put(commandline, marker);
-                    const modified_marker = this.modify_marker(
+                    const modifiedMarker = this.modifyMarker(
                       marker,
-                      start,
-                      shellStartPosition
+                      position.start
                     );
-                    this.errorMarkers.push(modified_marker);
+                    this.errorMarkers.push(modifiedMarker);
                   }
                 },
                 (error) => {

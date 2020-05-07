@@ -3,8 +3,7 @@
     <div style="text-align: center">
       <h1>CLcheck</h1>
       <p>
-        A linter for command line. Type/paste codes below to check bugs
-        instantly
+        check errors in command lines of dockerfile or shell script
       </p>
       <div>
         <span>Programming Language:</span>
@@ -28,17 +27,20 @@ import Editor from "../components/Editor.vue";
 export default {
   name: "Home",
   components: {
-    Editor
+    Editor,
   },
   data() {
     return {
-      language: "shell",
+      language: "dockerfile",
       // height: "400px",
       // width: "100px",
-      path: "http://127.0.0.1:5000/clcheck/",
+      path:
+        process.env.NODE_ENV === "production"
+          ? "https://darpa-jeff.uc.r.appspot.com/clcheck/"
+          : "http://127.0.0.1:5000/clcheck/",
       error: {
         code: "",
-        marker: ""
+        marker: "",
       },
       explanation: "",
       commandRange: {
@@ -46,16 +48,16 @@ export default {
           startLine: 1,
           endLine: 2,
           startColumn: 1,
-          endColumn: 10
-        }
-      }
+          endColumn: 10,
+        },
+      },
     };
   },
 
   methods: {},
   created() {
     console.log("started");
-  }
+  },
 };
 </script>
 
@@ -67,8 +69,8 @@ export default {
 .editor {
   border-color: grey;
   border-style: solid;
-  height: 600px;
-  width: 50%;
+  height: 500px;
+  width: 60%;
   margin: 0 auto;
 }
 </style>

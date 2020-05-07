@@ -22,14 +22,19 @@ clchecker = CLchecker(store)
 visitor = Visitor(clchecker, logger=logger)
 
 # enable CORS
-CORS(
-    app,
-    resources={
-        r'/clcheck/*': {
-            #  'origins': ['https://wangluochao902.github.io', '*']
-            'origins': "*"
-        }
-    })
+CORS(app,
+     resources={
+         r'/clcheck/*': {
+             'origins':
+                 'https://wangluochao902.github.io'
+                 if os.environ['ENV'] == "production" else "*"
+         }
+     })
+
+
+@app.route('/')
+def home():
+    return 'hello clcheck'
 
 
 @app.route('/checkcode/', methods=['GET', 'POST'])
@@ -97,15 +102,15 @@ def checkcommand():
     except CLError as e:
         marker = create_marker(e.start_line, e.start_col, e.end_line, e.end_col,
                                e.message, e.severity)
-        metamodel_doc = clchecker.metamodel_doc_cache.get(command_name)
-        if metamodel_doc:
-            concrete_specs = metamodel_doc[1].concrete_specs
-            command_info[
-                'explanation_key_to_ExplanationPair_key'] = concrete_specs[
-                    'explanation_key_to_ExplanationPair_key']
-            command_info['option_keys_to_OptionPair_key'] = concrete_specs[
-                'option_keys_to_OptionPair_key']
-            command_info['explanation'] = metamodel_doc[1].explanation
+    metamodel_doc = clchecker.metamodel_doc_cache.get(command_name)
+    if metamodel_doc:
+        concrete_specs = metamodel_doc[1].concrete_specs
+        command_info[
+            'explanation_key_to_ExplanationPair_key'] = concrete_specs[
+                'explanation_key_to_ExplanationPair_key']
+        command_info['option_keys_to_OptionPair_key'] = concrete_specs[
+            'option_keys_to_OptionPair_key']
+        command_info['explanation'] = metamodel_doc[1].explanation
     return jsonify({"marker": marker, "commandInfo": command_info})
 
 

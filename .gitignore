@@ -5,3 +5,4 @@ dockerfiles
 app.yaml
 test_bash_parser
 tmp.py
+start_*.sh
