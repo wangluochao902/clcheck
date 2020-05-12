@@ -17,24 +17,29 @@
     <br />
     <div style="text-align: center;">Analysis Result</div>
     <div class="output" style="font-size:85%;">
-      <p style="margin-left: 0.3em;">{{ message }}</p>
-
-      <div v-for="(output, index) in outputs" :key="index">
-        <div style="margin-left: 0.3em;">
-          <span :style="{ color: output.color }">{{ output.type }}</span> in
-          <span style="color:blue;cursor:pointer;text-decoration:underline" v-on:click="setPosition(output.line, output.col)">
-            {{ output.line }}:</span
+      <div v-if="outputs.length > 0">
+        <div v-for="(output, index) in outputs" :key="index">
+          <div style="margin-left: 0.3em;margin-top:0.7em">
+            <span :style="{ color: output.color }">{{ output.type }}</span> in
+            <span
+              style="color:blue;cursor:pointer;text-decoration:underline"
+              v-on:click="setPosition(output.line, output.col)"
+            >
+              {{ output.line }}:</span
+            >
+            <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
+              output.commandline
+            }}</span>
+          </div>
+          <div
+            style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";margin-bottom:0.4em'
           >
-          <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
-            output.commandline
-          }}</span>
+            {{ output.message }}
+          </div>
         </div>
-        <div
-          style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";'
-        >
-          {{ output.message }}
-        </div>
-        <br />
+      </div>
+      <div v-else>
+        <p style="margin-left: 0.3em;">{{ message }}</p>
       </div>
     </div>
   </div>
@@ -96,7 +101,7 @@ const dockerfile_all_instructions = [
   "stopsignal",
   "user",
   "volume",
-  "workdir",
+  "workdir"
 ];
 export { monaco };
 
@@ -106,7 +111,7 @@ export default {
     width: [String, Number],
     height: [String, Number],
     language: String,
-    path: String,
+    path: String
   },
   data() {
     return {
@@ -120,7 +125,7 @@ export default {
       message:
         "The analysis result will be here. Loading for the first time may take a few seconds",
       outputs: [],
-      doneAnalysis: "no",
+      doneAnalysis: "no"
     };
   },
 
@@ -145,7 +150,7 @@ export default {
     },
     value() {
       this.editor.setValue(this.value);
-    },
+    }
   },
 
   methods: {
@@ -170,21 +175,22 @@ RUN apt-get clean -y      && \\
     },
 
     load(fileNumber) {
-      fetch(`/buggy_files/${fileNumber}.txt`, { mode: "no-cors" })
-        .then((response) => {
-          const data = response.text();
-          console.log(data);
-          return data;
+      axios
+        .get(
+          `https://raw.githubusercontent.com/wangluochao902/clcheck/master/web/client/public/buggy_files/${fileNumber}.txt`
+        )
+        .then(response => {
+          this.value = response.data;
+          console.log(response);
         })
-        .then((data) => (this.value = data))
-        .catch((error) => console.error(error));
+        .catch(error => console.log(error));
     },
 
     setPosition(lineNumber, column) {
       this.editor.setPosition({ lineNumber: lineNumber, column: column });
       this.editor.revealPositionInCenter({
         lineNumber: lineNumber,
-        column: column,
+        column: column
       });
       this.editor.focus();
     },
@@ -207,13 +213,13 @@ RUN apt-get clean -y      && \\
             contents: [
               { value: `**${expl["found_key"]}**` },
               {
-                value: "```python\n" + expl["explanation"] + "\n```",
-              },
-            ],
+                value: "```python\n" + expl["explanation"] + "\n```"
+              }
+            ]
           };
         } else {
           return {
-            contents: { value: `***${words.word}*` },
+            contents: { value: `***${words.word}*` }
           };
         }
       }
@@ -256,7 +262,7 @@ RUN apt-get clean -y      && \\
       }
       let words = {
         char: char,
-        word: value.slice(i + 1, j),
+        word: value.slice(i + 1, j)
       };
       return words;
     },
@@ -311,7 +317,7 @@ RUN apt-get clean -y      && \\
         if (Pair_key != null)
           return {
             found_key: found_key,
-            explanation: commandInfo.explanation[Pair_key],
+            explanation: commandInfo.explanation[Pair_key]
           };
         return null;
       }
@@ -324,17 +330,17 @@ RUN apt-get clean -y      && \\
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
         value: this.value,
-        hover: { delay: 300 },
+        hover: { delay: 300 }
       });
       this.editor.onDidChangeModelContent(() => {
         console.log("in the ondidchange", this.doneAnalysis);
         this.clcheck(this.editor.getValue());
       });
       monaco.languages.registerHoverProvider("shell", {
-        provideHover: this.provideHover,
+        provideHover: this.provideHover
       });
       monaco.languages.registerHoverProvider("dockerfile", {
-        provideHover: this.provideHover,
+        provideHover: this.provideHover
       });
     },
 
@@ -343,10 +349,9 @@ RUN apt-get clean -y      && \\
       this.errorMarkers = [];
       this.outputs = [];
       var promises = [];
-      this.message = "Doning analysis...";
       if (this.language === "shell") {
         promises.push(
-          new Promise((resolve) => {
+          new Promise(resolve => {
             this.checkshell(code, { row: 1, col: 1 }).then(resolve());
           })
         );
@@ -366,7 +371,7 @@ RUN apt-get clean -y      && \\
               endLineNumber: range.start.line + 1,
               endColumn: keyWord.length,
               severity: monaco.MarkerSeverity.Error,
-              message: `Unknow instruction "${instruction.instruction}"`,
+              message: `Unknow instruction "${instruction.instruction}"`
             };
             this.errorMarkers.push(marker);
             this.outputs.push({
@@ -375,18 +380,18 @@ RUN apt-get clean -y      && \\
               color: "red",
               type: "error",
               commandline: instruction.getTextContent(),
-              message: marker.message,
+              message: marker.message
             });
           }
           if (instruction.getKeyword() === "RUN") {
             const range = instruction.getRange();
             const shellStartPosition = {
               row: range.start.line + 1,
-              col: range.start.character + 1 + 4,
+              col: range.start.character + 1 + 4
             };
             const shellscript = instruction.getTextContent().slice(4);
             promises.push(
-              new Promise((resolve) => {
+              new Promise(resolve => {
                 this.checkshell(shellscript, shellStartPosition).then(
                   resolve()
                 );
@@ -396,8 +401,8 @@ RUN apt-get clean -y      && \\
         }
       }
       if (promises.length > 0) {
-        Promise.all(promises).then((this.message = "Done analysis!"));
-      } else this.message = "Done analysis!";
+        Promise.all(promises).then((this.message = "No results"));
+      } else this.message = "No results";
     },
 
     async checkshell(shellscript, shellStartPosition) {
@@ -405,13 +410,13 @@ RUN apt-get clean -y      && \\
         shellscript = shellscript.replace(/\r\n/g, "\n");
         // const shellscript = shellscript.replace('\r', '\n')
         const ast = parse(shellscript, { insertLOC: true });
-        // utils.logResults(result)
         traverse(ast, {
-          Command: (node) => {
-            // have a check for `name` key. some command like redirect don't have such key
+          Command: node => {
+            // have a check for `name` key. some command like redirect (when people mistakenly put it at the beginning)
+            // don't have such key
             if (node.name == null) {
               console.log(node, "the command doesn't have name");
-              // return;
+              return;
             }
             const commandName = node.name.text;
             var start = node.loc.start;
@@ -430,13 +435,13 @@ RUN apt-get clean -y      && \\
             const commandline = shellscript.slice(start.char, end.char + 1);
             var position = {
               start: start,
-              end: end,
+              end: end
             };
             position = this.offset_position(shellStartPosition, position);
             this.commandRange.push({
               commandName: commandName,
               start: position.start,
-              end: position.end,
+              end: position.end
             });
             if (this.lruCache.has(commandline)) {
               const marker = this.lruCache.get(commandline);
@@ -450,17 +455,15 @@ RUN apt-get clean -y      && \\
                   line: modifiedMarker.startLineNumber,
                   col: modifiedMarker.startColumn,
                   color:
-                    modifiedMarker.severity == 8
-                      ? "red"
-                      : "rgb(230, 141, 8)",
+                    modifiedMarker.severity == 8 ? "red" : "rgb(230, 141, 8)",
                   type: modifiedMarker.severity == 8 ? "error" : "warning",
                   commandline: commandline,
-                  message: modifiedMarker.message,
+                  message: modifiedMarker.message
                 });
               }
             } else {
               this.checkCommand(commandline, commandName).then(
-                (res) => {
+                res => {
                   const commandInfo = res.data.commandInfo;
                   if (Object.keys(commandInfo).length > 0) {
                     this.commandInfo[commandName] = commandInfo;
@@ -488,21 +491,20 @@ RUN apt-get clean -y      && \\
                         modifiedMarker.severity == 8
                           ? "red"
                           : "rgb(230, 141, 8)",
-                      type:
-                        modifiedMarker.severity == 8 ? "error" : "warning",
+                      type: modifiedMarker.severity == 8 ? "error" : "warning",
                       commandline: commandline,
-                      message: modifiedMarker.message,
+                      message: modifiedMarker.message
                     });
-                    console.log(this.outputs)
+                    console.log(this.outputs);
                   }
                 },
-                (error) => {
+                error => {
                   console.log("can not access");
                   console.log(error);
                 }
               );
             }
-          },
+          }
         });
       } catch (e) {
         if (e instanceof Error) {
@@ -517,7 +519,7 @@ RUN apt-get clean -y      && \\
             startColumn: 1,
             endColumn: 1000,
             message: "Parsing Error" + e.message.slice(end_index),
-            severity: monaco.MarkerSeverity.Error,
+            severity: monaco.MarkerSeverity.Error
           };
           this.errorMarkers.push(marker);
           this.outputs.push({
@@ -526,7 +528,7 @@ RUN apt-get clean -y      && \\
             color: "red",
             type: "error",
             commandline: this.editor.getModel().getLineContent(lineNumber),
-            message: marker.message,
+            message: marker.message
           });
           console.log(e);
 
@@ -542,29 +544,10 @@ RUN apt-get clean -y      && \\
         method: "POST",
         url: this.path + "checkcommand/",
         headers: { "Content-Type": "application/json" },
-        data: { commandline: commandline, commandName: commandName },
+        data: { commandline: commandline, commandName: commandName }
       });
-    },
-
-    // async explain(commandName, words) {
-    //   let explanation = await axios({
-    //     method: "POST",
-    //     url: this.path + "explain/",
-    //     headers: { "Content-Type": "application/json" },
-    //     data: { commandName: commandName, words: words }
-    //   }).then(
-    //     res => {
-    //       return res.data;
-    //     },
-    //     error => {
-    //       console.log("can not get explanation");
-    //       console.log(error);
-    //       return "";
-    //     }
-    //   );
-    //   return explanation;
-    // }
-  },
+    }
+  }
 };
 </script>
 <style>
