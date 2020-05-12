@@ -108,9 +108,13 @@ class CLchecker():
                                 severity="Error")
 
                 # todo before, mutex, after
-
     def get_abs_position(self, line_num, col_num):
         return self.new_lines_start[line_num - 1] + col_num - 1
+
+
+    def get_abs_position_from_commandline(self, commandline, line_num, col_num):
+        lines = commandline.split('\n')
+        return sum([0]+[len(l)+1 for l in lines[:line_num-1]]) + col_num - 1
 
     def convert_pos_to_linecol(self, abs_pos):
         '''Use binary search to find the line number.
@@ -132,7 +136,7 @@ class CLchecker():
             # line number counts from 1
         return line + 1, abs_pos - self.new_lines_start[line] + 1
 
-    def get_position(self, obj):
+    def get_position_from_obj(self, obj):
         start_line, start_col = self.convert_pos_to_linecol(obj._tx_position)
         end_line, end_col = self.convert_pos_to_linecol(obj._tx_position_end)
         position = {
@@ -142,6 +146,19 @@ class CLchecker():
             "end_col": end_col,
             "abs_start": obj._tx_position,
             "abs_end": obj._tx_position_end
+        }
+        return position
+
+    def get_position_from_abs(self, abs_start, abs_end):
+        start_line, start_col = self.convert_pos_to_linecol(abs_start)
+        end_line, end_col = self.convert_pos_to_linecol(abs_end)
+        position = {
+            "start_line": start_line,
+            "start_col": start_col,
+            "end_line": end_line,
+            "end_col": end_col,
+            "abs_start": abs_start,
+            "abs_end": abs_end
         }
         return position
 
@@ -197,8 +214,7 @@ class CLchecker():
                         if ref in self.ref_to_txobj:
                             need_to_report = True
                             # if it is an option and has value attribute
-                            if (clsname.startswith('ShortOption') or clsname.startswith('LongOption')) and hasattr(
-                                    obj, "value"):
+                            if (clsname.startswith('ShortOption') or clsname.startswith('LongOption')):
                                 OptionPair_key = self.option_keys_to_OptionPair_key[
                                     ref]
                                 for option_key, readable_syntax in self.OptionPair_key_to_option_keys_and_readable_syntax[
@@ -207,7 +223,7 @@ class CLchecker():
                                         need_to_report = False
                                         break
                             if need_to_report:
-                                position = self.get_position(obj)
+                                position = self.get_position_from_obj(obj)
                                 raise CLSyntaxError(
                                     f"{ref} has presented previous in the `{self.command_name}` command",
                                     **position,
@@ -235,7 +251,7 @@ class CLchecker():
                                     need_to_report = False
                                     break
                             if need_to_report:
-                                position = self.get_position(obj)
+                                position = self.get_position_from_obj(obj)
                                 same_option_keys_and_readable_syntaxes = self.OptionPair_key_to_option_keys_and_readable_syntax[
                                     OptionPair_key]
                                 readable_syntaxes = [
@@ -281,21 +297,18 @@ class CLchecker():
             try:
                 model = command_metamodel.model_from_str(commandline)
             except textx.TextXSyntaxError as e:
-                abs_start = self.get_abs_position(e.line, e.col)
+                abs_start = self.get_abs_position_from_commandline(commandline, e.line, e.col)
+                position = self.get_position_from_abs(abs_start, abs_start)
                 raise CLSyntaxError(e.message,
-                                    start_line=e.line,
-                                    start_col=e.col,
-                                    abs_start=abs_start,
-                                    err_type=e.err_type,
+                                    **position,
                                     expected_rules=e.expected_rules,
                                     severity="Error")
             except textx.TextXSemanticError as e:
-                abs_start = self.get_abs_position(commandline, e.start_line,
-                                                  e.end_line)
+                abs_start = self.get_abs_position_from_commandline(commandline, e.line,
+                                                  e.col)
+                position = self.get_position_from_abs(abs_start, abs_start)
                 raise CLSemanticError(e.message,
-                                      start_line=e.line,
-                                      start_col=e.col,
-                                      abs_start=abs_start,
+                                      **position,
                                       err_type=e.err_type,
                                       expected_obj_cls=e.expected_obj_cls,
                                       severity="Error")

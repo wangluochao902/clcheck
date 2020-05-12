@@ -508,7 +508,7 @@ class Translator():
             clsname_statement, readable_syntax_statement = self.process_statement(
                 single_option.statement, 'Option', variables)
 
-            single_option_content += f' ("=" | /[ \t]+/) value={clsname_statement}'
+            single_option_content += f' (/(?<!( |\t))=(?!( |\t))/ | /[ \t]+/) value={clsname_statement}'
             readable_syntax_statement = "=<" + readable_syntax_statement + ">"
         if single_option.multi_times:
             readable_syntax += '+' + readable_syntax_statement

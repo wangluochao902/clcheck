@@ -21,9 +21,11 @@ class CLError(Exception):
         self.severity= severity
 
         # todo: make message more readable
+        equal = "(?<!( |\t))=(?!( |\t))".encode().decode()
         pkg = "'[^=\\s]+'".encode().decode()
         path = "(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\-\.]+".encode().decode()
         dir = "(?:\/)?(?:[\*\w\-\.]*\/)*[\*\w\.\-]+(?:\/)?".encode().decode()
+        message = message.replace(equal, '=(no space before or after)')
         message = message.replace(pkg, "VERSION")
         message = message.replace(path, "PATH")
         message = message.replace(dir, "DIR")
@@ -35,7 +37,7 @@ class CLError(Exception):
         pattern = look_behide + r'(.*?)' + look_ahead
         message = re.sub(pattern, reverse_python_re_escape, message)
 
-        message = re.sub(r'position \(([1-9]*), ([1-9]*)\)', f'the position of the star(*) in' , message)
+        message = re.sub(r'position \(([0-9]*), ([0-9]*)\)', f'the position of the star(*) in' , message)
         self.message = message
 
 

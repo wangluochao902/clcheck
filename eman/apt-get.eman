@@ -73,7 +73,7 @@ e-options options:
         Configuration Item: APT::Get::Download.
 
     -q, --quiet
-    e-syntax:-q=<INT>, -q, --quiet=<INT>, --quiet, -qq e-end
+    e-syntax:-q+=<INT>, -q+, --quiet+=<INT>, --quiet+ e-end
     e-spec: (mutex:[-d, --print-uris, -s, --show-progress]) e-end
         Quiet; produces output suitable for logging, omitting progress indicators. More q's will produce more quiet up to a maximum of 2. You can
         also use -q=# to set the quiet level, overriding the configuration file. Note that quiet level 2 implies -y; you should never use -qq

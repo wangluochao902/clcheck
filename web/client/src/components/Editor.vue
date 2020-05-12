@@ -1,5 +1,43 @@
 <template>
-  <div id="container" style="width: 100%; height: 100%;"></div>
+  <div>
+    <div v-show="language == 'dockerfile'" class="load">
+      <span v-on:click="load(0)" class="example" style="margin-left=0em"
+        >Loads a buggy example from one of Microsoft's repo </span
+      ><a
+        href="https://github.com/Azure/sonic-buildimage/issues/4458"
+        target="_blank"
+        style="text-decoration: none"
+        >link to the issue</a
+      >
+      <span v-on:click="loadRandom()" class="example" style="margin-left:2em"
+        >Loads a random buggy example collected from GitHub</span
+      >
+    </div>
+    <div id="container" class="editor"></div>
+    <br />
+    <div style="text-align: center;">Analysis Result</div>
+    <div class="output" style="font-size:85%;">
+      <p style="margin-left: 0.3em;">{{ message }}</p>
+
+      <div v-for="(output, index) in outputs" :key="index">
+        <div style="margin-left: 0.3em;">
+          <span :style="{ color: output.color }">{{ output.type }}</span> in
+          <span style="color:blue;cursor:pointer;text-decoration:underline" v-on:click="setPosition(output.line, output.col)">
+            {{ output.line }}:</span
+          >
+          <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
+            output.commandline
+          }}</span>
+        </div>
+        <div
+          style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";'
+        >
+          {{ output.message }}
+        </div>
+        <br />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -40,6 +78,26 @@ class LRUCache {
   }
 }
 
+const dockerfile_all_instructions = [
+  "add",
+  "arg",
+  "cmd",
+  "copy",
+  "entrypoint",
+  "env",
+  "expose",
+  "from",
+  "healthcheck",
+  "label",
+  "maintainer",
+  "onbuild",
+  "run",
+  "shell",
+  "stopsignal",
+  "user",
+  "volume",
+  "workdir",
+];
 export { monaco };
 
 export default {
@@ -53,12 +111,16 @@ export default {
   data() {
     return {
       editor: null,
-      lruCache: new LRUCache(10),
+      lruCache: new LRUCache(1),
       value: "",
       errorMarkers: [],
       explanation: "",
       commandRange: {},
       commandInfo: {},
+      message:
+        "The analysis result will be here. Loading for the first time may take a few seconds",
+      outputs: [],
+      doneAnalysis: "no",
     };
   },
 
@@ -81,7 +143,6 @@ export default {
       this.resetValue();
       this.lruCache = new LRUCache(10);
     },
-    explanation() {},
     value() {
       this.editor.setValue(this.value);
     },
@@ -93,8 +154,7 @@ export default {
         this.value =
           "if [ 3 -gt 2 ]; \nthen\n    apt-get --assume-no install -y nodejs;\nfi;";
       } else {
-        this.value =
-          `FROM ubuntu:16.04
+        this.value = `FROM ubuntu:16.04
 RUN apt-get clean -y      && \\
     apt-get autoclean -   && \\
     apt-get autoremove -y && \\
@@ -102,6 +162,31 @@ RUN apt-get clean -y      && \\
     tar xvffile.tar
 `;
       }
+    },
+
+    loadRandom() {
+      const fileNumber = Math.ceil(Math.random() * 8);
+      this.load(fileNumber);
+    },
+
+    load(fileNumber) {
+      fetch(`/buggy_files/${fileNumber}.txt`, { mode: "no-cors" })
+        .then((response) => {
+          const data = response.text();
+          console.log(data);
+          return data;
+        })
+        .then((data) => (this.value = data))
+        .catch((error) => console.error(error));
+    },
+
+    setPosition(lineNumber, column) {
+      this.editor.setPosition({ lineNumber: lineNumber, column: column });
+      this.editor.revealPositionInCenter({
+        lineNumber: lineNumber,
+        column: column,
+      });
+      this.editor.focus();
     },
 
     provideHover(model, position) {
@@ -135,7 +220,7 @@ RUN apt-get clean -y      && \\
     },
 
     getCommandName(position) {
-      //TODO: use binary search instead
+      //TODO: use binary search instead or a hashmap for better performance
       for (const command of this.commandRange) {
         if (
           position.lineNumber >= command["start"]["row"] &&
@@ -185,7 +270,7 @@ RUN apt-get clean -y      && \\
       }
       position.start.row += start.row - 1;
       position.end.row += start.row - 1;
-      return position
+      return position;
     },
 
     modifyMarker(marker, start) {
@@ -236,16 +321,15 @@ RUN apt-get clean -y      && \\
       this.editor = monaco.editor.create(document.getElementById("container"), {
         language: this.language,
         theme: "vs",
-        scrollBeyondLastLine: true,
+        scrollBeyondLastLine: false,
         minimap: { enabled: false },
         value: this.value,
         hover: { delay: 300 },
       });
       this.editor.onDidChangeModelContent(() => {
+        console.log("in the ondidchange", this.doneAnalysis);
         this.clcheck(this.editor.getValue());
-        console.log(this.editor.getValue().length);
       });
-      this.resetValue();
       monaco.languages.registerHoverProvider("shell", {
         provideHover: this.provideHover,
       });
@@ -257,31 +341,78 @@ RUN apt-get clean -y      && \\
     clcheck(code) {
       this.commandRange = [];
       this.errorMarkers = [];
+      this.outputs = [];
+      var promises = [];
+      this.message = "Doning analysis...";
       if (this.language === "shell") {
-        this.checkshell(code, { row: 1, col: 1 });
+        promises.push(
+          new Promise((resolve) => {
+            this.checkshell(code, { row: 1, col: 1 }).then(resolve());
+          })
+        );
       } else {
         let dockerfile = DockerfileParser.parse(code);
         let instructions = dockerfile.getInstructions();
         for (let instruction of instructions) {
+          const keyWord = instruction.getKeyword();
+          if (
+            !dockerfile_all_instructions.includes(keyWord.toLowerCase()) &&
+            !keyWord.startsWith("{")
+          ) {
+            const range = instruction.getRange();
+            const marker = {
+              startLineNumber: range.start.line + 1,
+              startColumn: range.start.character + 1,
+              endLineNumber: range.start.line + 1,
+              endColumn: keyWord.length,
+              severity: monaco.MarkerSeverity.Error,
+              message: `Unknow instruction "${instruction.instruction}"`,
+            };
+            this.errorMarkers.push(marker);
+            this.outputs.push({
+              line: marker.startLineNumber,
+              col: marker.startColumn,
+              color: "red",
+              type: "error",
+              commandline: instruction.getTextContent(),
+              message: marker.message,
+            });
+          }
           if (instruction.getKeyword() === "RUN") {
             const range = instruction.getRange();
             const shellStartPosition = {
               row: range.start.line + 1,
-              col: range.start.character + 1 + 3,
+              col: range.start.character + 1 + 4,
             };
-            const shellscript = instruction.getTextContent().slice(3);
-            this.checkshell(shellscript, shellStartPosition);
+            const shellscript = instruction.getTextContent().slice(4);
+            promises.push(
+              new Promise((resolve) => {
+                this.checkshell(shellscript, shellStartPosition).then(
+                  resolve()
+                );
+              })
+            );
           }
         }
       }
+      if (promises.length > 0) {
+        Promise.all(promises).then((this.message = "Done analysis!"));
+      } else this.message = "Done analysis!";
     },
 
     async checkshell(shellscript, shellStartPosition) {
       try {
+        shellscript = shellscript.replace(/\r\n/g, "\n");
+        // const shellscript = shellscript.replace('\r', '\n')
         const ast = parse(shellscript, { insertLOC: true });
         // utils.logResults(result)
         traverse(ast, {
           Command: (node) => {
+            // have a check for `name` key. some command like redirect don't have such key
+            if (node.name == null) {
+              console.log(node, "the command doesn't have name");
+              // return;
+            }
             const commandName = node.name.text;
             var start = node.loc.start;
             var end = node.loc.end;
@@ -299,8 +430,8 @@ RUN apt-get clean -y      && \\
             const commandline = shellscript.slice(start.char, end.char + 1);
             var position = {
               start: start,
-              end: end
-            }
+              end: end,
+            };
             position = this.offset_position(shellStartPosition, position);
             this.commandRange.push({
               commandName: commandName,
@@ -315,12 +446,23 @@ RUN apt-get clean -y      && \\
                   position.start
                 );
                 this.errorMarkers.push(modifiedMarker);
+                this.outputs.push({
+                  line: modifiedMarker.startLineNumber,
+                  col: modifiedMarker.startColumn,
+                  color:
+                    modifiedMarker.severity == 8
+                      ? "red"
+                      : "rgb(230, 141, 8)",
+                  type: modifiedMarker.severity == 8 ? "error" : "warning",
+                  commandline: commandline,
+                  message: modifiedMarker.message,
+                });
               }
             } else {
               this.checkCommand(commandline, commandName).then(
                 (res) => {
                   const commandInfo = res.data.commandInfo;
-                  if (commandInfo.length > 0) {
+                  if (Object.keys(commandInfo).length > 0) {
                     this.commandInfo[commandName] = commandInfo;
                   }
                   const marker = res.data.marker;
@@ -334,11 +476,24 @@ RUN apt-get clean -y      && \\
                     console.log("this is the marker");
                     console.log(marker);
                     this.lruCache.put(commandline, marker);
-                    const modifiedMarker = this.modifyMarker(
+                    var modifiedMarker = this.modifyMarker(
                       marker,
                       position.start
                     );
                     this.errorMarkers.push(modifiedMarker);
+                    this.outputs.push({
+                      line: modifiedMarker.startLineNumber,
+                      col: modifiedMarker.startColumn,
+                      color:
+                        modifiedMarker.severity == 8
+                          ? "red"
+                          : "rgb(230, 141, 8)",
+                      type:
+                        modifiedMarker.severity == 8 ? "error" : "warning",
+                      commandline: commandline,
+                      message: modifiedMarker.message,
+                    });
+                    console.log(this.outputs)
                   }
                 },
                 (error) => {
@@ -365,6 +520,14 @@ RUN apt-get clean -y      && \\
             severity: monaco.MarkerSeverity.Error,
           };
           this.errorMarkers.push(marker);
+          this.outputs.push({
+            line: lineNumber,
+            col: marker.startColumn,
+            color: "red",
+            type: "error",
+            commandline: this.editor.getModel().getLineContent(lineNumber),
+            message: marker.message,
+          });
           console.log(e);
 
           console.log(e.message);
@@ -383,25 +546,55 @@ RUN apt-get clean -y      && \\
       });
     },
 
-    async explain(commandName, words) {
-      console.log("receive the explain event");
-      let explanation = await axios({
-        method: "POST",
-        url: this.path + "explain/",
-        headers: { "Content-Type": "application/json" },
-        data: { commandName: commandName, words: words },
-      }).then(
-        (res) => {
-          return res.data;
-        },
-        (error) => {
-          console.log("can not get explanation");
-          console.log(error);
-          return "";
-        }
-      );
-      return explanation;
-    },
+    // async explain(commandName, words) {
+    //   let explanation = await axios({
+    //     method: "POST",
+    //     url: this.path + "explain/",
+    //     headers: { "Content-Type": "application/json" },
+    //     data: { commandName: commandName, words: words }
+    //   }).then(
+    //     res => {
+    //       return res.data;
+    //     },
+    //     error => {
+    //       console.log("can not get explanation");
+    //       console.log(error);
+    //       return "";
+    //     }
+    //   );
+    //   return explanation;
+    // }
   },
 };
 </script>
+<style>
+.editor {
+  border-color: grey;
+  border-style: solid;
+  width: 60%;
+  height: 400px;
+  margin: 0 auto;
+}
+.output {
+  border-color: gray;
+  border-style: solid;
+  width: 60%;
+  margin: 0 auto;
+  background-color: rgb(245, 243, 240);
+}
+.load {
+  width: 60%;
+  margin: 0 auto;
+  margin-bottom: 0.2em;
+  color: grey;
+}
+.example {
+  cursor: pointer;
+}
+span.example:hover {
+  color: blue;
+}
+span.lineNumber:hover {
+  color: blue;
+}
+</style>

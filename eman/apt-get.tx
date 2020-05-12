@@ -294,7 +294,7 @@ SequentialStatement_4[skipws]:
 ;
 
 ShortOptionWithValue_0[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-q(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_4 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-q(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_4 /[ 	]*/-
 ;
 
 ShortOptionWithoutValue_option_key_5[noskipws]:
@@ -314,7 +314,7 @@ SequentialStatement_5[skipws]:
 ;
 
 LongOptionWithValue_0[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_5 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_5 /[ 	]*/-
 ;
 
 LongOptionWithoutValue_option_key_11[noskipws]:
@@ -325,14 +325,6 @@ LongOptionWithoutValue_11[noskipws]:
 	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-quiet(?!(\w|\-))/ /[ 	]*/-
 ;
 
-ShortOptionWithoutValue_option_key_6[noskipws]:
-	option_key="qq"
-;
-
-ShortOptionWithoutValue_6:
-	option_key="qq"
-;
-
 OptionSyntax_10:
 	choice2=LongOptionWithValue_0 | choice3=LongOptionWithoutValue_11
 ;
@@ -341,11 +333,11 @@ OptionItem_10:
 	item=OptionSyntax_10
 ;
 
-ShortOptionWithoutValue_option_key_7[noskipws]:
+ShortOptionWithoutValue_option_key_6[noskipws]:
 	option_key="s"
 ;
 
-ShortOptionWithoutValue_7:
+ShortOptionWithoutValue_6:
 	option_key="s"
 ;
 
@@ -397,11 +389,11 @@ OptionItem_11:
 	item=OptionSyntax_11
 ;
 
-ShortOptionWithoutValue_option_key_8[noskipws]:
+ShortOptionWithoutValue_option_key_7[noskipws]:
 	option_key="y"
 ;
 
-ShortOptionWithoutValue_8:
+ShortOptionWithoutValue_7:
 	option_key="y"
 ;
 
@@ -461,11 +453,11 @@ OptionItem_14:
 	item=OptionSyntax_14
 ;
 
-ShortOptionWithoutValue_option_key_9[noskipws]:
+ShortOptionWithoutValue_option_key_8[noskipws]:
 	option_key="u"
 ;
 
-ShortOptionWithoutValue_9:
+ShortOptionWithoutValue_8:
 	option_key="u"
 ;
 
@@ -485,11 +477,11 @@ OptionItem_15:
 	item=OptionSyntax_15
 ;
 
-ShortOptionWithoutValue_option_key_10[noskipws]:
+ShortOptionWithoutValue_option_key_9[noskipws]:
 	option_key="V"
 ;
 
-ShortOptionWithoutValue_10:
+ShortOptionWithoutValue_9:
 	option_key="V"
 ;
 
@@ -518,7 +510,7 @@ SequentialStatement_6[skipws]:
 ;
 
 ShortOptionWithValue_1[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-a(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_6 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-a(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_6 /[ 	]*/-
 ;
 
 LongOptionWithValue_option_key_1[noskipws]:
@@ -530,7 +522,7 @@ SequentialStatement_7[skipws]:
 ;
 
 LongOptionWithValue_1[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-host\-architecture(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_7 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-host\-architecture(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_7 /[ 	]*/-
 ;
 
 OptionSyntax_17:
@@ -541,11 +533,11 @@ OptionItem_17:
 	item=OptionSyntax_17
 ;
 
-ShortOptionWithoutValue_option_key_11[noskipws]:
+ShortOptionWithoutValue_option_key_10[noskipws]:
 	option_key="P"
 ;
 
-ShortOptionWithoutValue_11:
+ShortOptionWithoutValue_10:
 	option_key="P"
 ;
 
@@ -565,11 +557,11 @@ OptionItem_18:
 	item=OptionSyntax_18
 ;
 
-ShortOptionWithoutValue_option_key_12[noskipws]:
+ShortOptionWithoutValue_option_key_11[noskipws]:
 	option_key="b"
 ;
 
-ShortOptionWithoutValue_12:
+ShortOptionWithoutValue_11:
 	option_key="b"
 ;
 
@@ -830,7 +822,7 @@ SequentialStatement_8[skipws]:
 ;
 
 ShortOptionWithValue_2[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-t(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_8 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-t(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_8 /[ 	]*/-
 ;
 
 LongOptionWithValue_option_key_2[noskipws]:
@@ -842,7 +834,7 @@ SequentialStatement_9[skipws]:
 ;
 
 LongOptionWithValue_2[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-target\-release(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_9 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-target\-release(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_9 /[ 	]*/-
 ;
 
 LongOptionWithValue_option_key_3[noskipws]:
@@ -854,7 +846,7 @@ SequentialStatement_10[skipws]:
 ;
 
 LongOptionWithValue_3[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-default\-release(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_10 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-default\-release(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_10 /[ 	]*/-
 ;
 
 OptionSyntax_34:
@@ -1106,7 +1098,7 @@ SequentialStatement_11[skipws]:
 ;
 
 ShortOptionWithValue_3[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-c(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_11 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-c(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_11 /[ 	]*/-
 ;
 
 LongOptionWithValue_option_key_4[noskipws]:
@@ -1118,7 +1110,7 @@ SequentialStatement_12[skipws]:
 ;
 
 LongOptionWithValue_4[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-config\-file(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_12 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-config\-file(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_12 /[ 	]*/-
 ;
 
 OptionSyntax_48:
@@ -1142,7 +1134,7 @@ SequentialStatement_13[skipws]:
 ;
 
 ShortOptionWithValue_4[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-o(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_13 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-o(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_13 /[ 	]*/-
 ;
 
 LongOptionWithValue_option_key_5[noskipws]:
@@ -1154,7 +1146,7 @@ SequentialStatement_14[skipws]:
 ;
 
 LongOptionWithValue_5[noskipws]:
-	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-option(?!(\w|\-))/ ("=" | /[ 	]+/) value=SequentialStatement_14 /[ 	]*/-
+	/[ 	]*/- option_key=/(?<!(\w|\-))\-\-option(?!(\w|\-))/ (/(?<!( |	))=(?!( |	))/ | /[ 	]+/) value=SequentialStatement_14 /[ 	]*/-
 ;
 
 OptionSyntax_49:
@@ -1170,7 +1162,7 @@ AllShortOptionWithValueAtOptionSession_2:
 ;
 
 ShortOptionWithoutDash_2:
-	(short_option_without_dash0=ShortOptionWithoutValue_6 | short_option_without_dash1=ShortOptionWithoutValue_2 | short_option_without_dash2=ShortOptionWithoutValue_3 | short_option_without_dash3=ShortOptionWithoutValue_4 | short_option_without_dash4=ShortOptionWithoutValue_5 | short_option_without_dash5=ShortOptionWithoutValue_7 | short_option_without_dash6=ShortOptionWithoutValue_8 | short_option_without_dash7=ShortOptionWithoutValue_9 | short_option_without_dash8=ShortOptionWithoutValue_10 | short_option_without_dash9=ShortOptionWithoutValue_11 | short_option_without_dash10=ShortOptionWithoutValue_12)
+	(short_option_without_dash0=ShortOptionWithoutValue_2 | short_option_without_dash1=ShortOptionWithoutValue_3 | short_option_without_dash2=ShortOptionWithoutValue_4 | short_option_without_dash3=ShortOptionWithoutValue_5 | short_option_without_dash4=ShortOptionWithoutValue_6 | short_option_without_dash5=ShortOptionWithoutValue_7 | short_option_without_dash6=ShortOptionWithoutValue_8 | short_option_without_dash7=ShortOptionWithoutValue_9 | short_option_without_dash8=ShortOptionWithoutValue_10 | short_option_without_dash9=ShortOptionWithoutValue_11)
 ;
 
 CombinedShortOption_2[noskipws]:
