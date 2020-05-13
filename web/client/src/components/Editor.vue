@@ -20,8 +20,8 @@
       <p style="margin-left: 0.3em;margin-top:0.5em;margin-bottom:0em">
         {{ message }}
       </p>
-      <div v-show="outputs.length == 0" style="margin-top:0.5em"></div>
-      <div v-for="(output, index) in outputs" :key="index">
+      <div v-show="allOutputs.length == 0" style="margin-top:0.5em"></div>
+      <div v-for="(output, index) in allOutputs" :key="index">
         <div style="margin-left: 0.3em;margin-top:0.7em">
           <span :style="{ color: output.color }">{{ output.type }}</span> in
           <span
@@ -123,8 +123,7 @@ export default {
       commandInfo: {},
       message:
         "The analysis result will be here. Loading for the first time may take a few seconds",
-      outputs: [],
-      doneAnalysis: "no"
+      allOutputs: [],
     };
   },
 
@@ -347,6 +346,7 @@ RUN apt-get clean -y      && \\
       this.commandRange = [];
       this.errorMarkers = [];
       this.outputs = [];
+      this.allOutputs = [];
       this.message = "Analyzing...(loading for the first time may take a few seconds)";
       var promises = [];
       if (this.language === "shell") {
@@ -406,6 +406,7 @@ RUN apt-get clean -y      && \\
             this.message = "No problems detected";
           } else {
             this.message = "Done analysis!";
+            this.allOutputs = this.outputs
           }
         });
       } else this.message = "No problems detected";

@@ -34,7 +34,7 @@ LOGGING_DICT = {
         },
     },
     'loggers': {
-        'explainshell': {
+        'clcheck': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False
