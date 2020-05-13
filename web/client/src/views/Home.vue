@@ -31,7 +31,7 @@
     <div style="text-align:left">
       <div style="margin:0 auto;width:51%;">
         <h3 style="text-align:center;margin-top:0.3em;margin-bottom:0.2em">
-          Why CLCheck?
+          Why CLcheck?
         </h3>
         <ul style="margin-top:0.1em">
           <li>
@@ -55,12 +55,12 @@
             Association Rules Mining and NLP techniques can help mining rules.
           </li>
           <li>
-            CLCheck is based on Eman, emitting errors when rules in a Eman are
+            CLcheck is based on Eman, emitting errors when rules in a Eman are
             violated.
           </li>
           <li>
             CLcheck is conservative. We use Dockerfiles in top stared 100,000
-            GitHub repositories to test against the tool. The Eman or CLCheck
+            GitHub repositories to test against the tool. The Eman or CLcheck
             will be modified when a false positive occurs. Some true positves
             (real bugs) are listed in the example above.
           </li>

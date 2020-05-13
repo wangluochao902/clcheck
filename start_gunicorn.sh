@@ -1,1 +1,1 @@
-gunicorn -w 4 web.server.app:app -b 127.0.0.1:5000
+ENV=development gunicorn -w 4 web.server.app:app -b 127.0.0.1:5000

@@ -2,44 +2,43 @@
   <div>
     <div v-show="language == 'dockerfile'" class="load">
       <span v-on:click="load(0)" class="example" style="margin-left=0em"
-        >Loads a buggy example from one of Microsoft's repo </span
+        >Loads a buggy example detected by this tool in Microsoft's repo </span
       ><a
         href="https://github.com/Azure/sonic-buildimage/issues/4458"
         target="_blank"
         style="text-decoration: none"
-        >link to the issue</a
+        >link</a
       >
       <span v-on:click="loadRandom()" class="example" style="margin-left:2em"
-        >Loads a random buggy example collected from GitHub</span
+        >Loads a random buggy example detected by this tool from GitHub</span
       >
     </div>
     <div id="container" class="editor"></div>
     <br />
     <div style="text-align: center;">Analysis Result</div>
     <div class="output" style="font-size:85%;">
-      <div v-if="outputs.length > 0">
-        <div v-for="(output, index) in outputs" :key="index">
-          <div style="margin-left: 0.3em;margin-top:0.7em">
-            <span :style="{ color: output.color }">{{ output.type }}</span> in
-            <span
-              style="color:blue;cursor:pointer;text-decoration:underline"
-              v-on:click="setPosition(output.line, output.col)"
-            >
-              {{ output.line }}:</span
-            >
-            <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
-              output.commandline
-            }}</span>
-          </div>
-          <div
-            style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";margin-bottom:0.4em'
+      <p style="margin-left: 0.3em;margin-top:0.5em;margin-bottom:0em">
+        {{ message }}
+      </p>
+      <div v-show="outputs.length == 0" style="margin-top:0.5em"></div>
+      <div v-for="(output, index) in outputs" :key="index">
+        <div style="margin-left: 0.3em;margin-top:0.7em">
+          <span :style="{ color: output.color }">{{ output.type }}</span> in
+          <span
+            style="color:blue;cursor:pointer;text-decoration:underline"
+            v-on:click="setPosition(output.line, output.col)"
           >
-            {{ output.message }}
-          </div>
+            {{ output.line }}:</span
+          >
+          <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
+            output.commandline
+          }}</span>
         </div>
-      </div>
-      <div v-else>
-        <p style="margin-left: 0.3em;">{{ message }}</p>
+        <div
+          style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";margin-bottom:0.4em'
+        >
+          {{ output.message }}
+        </div>
       </div>
     </div>
   </div>
@@ -348,6 +347,7 @@ RUN apt-get clean -y      && \\
       this.commandRange = [];
       this.errorMarkers = [];
       this.outputs = [];
+      this.message = "Analyzing...(loading for the first time may take a few seconds)";
       var promises = [];
       if (this.language === "shell") {
         promises.push(
@@ -392,17 +392,23 @@ RUN apt-get clean -y      && \\
             const shellscript = instruction.getTextContent().slice(4);
             promises.push(
               new Promise(resolve => {
-                this.checkshell(shellscript, shellStartPosition).then(
-                  resolve()
-                );
+                this.checkshell(shellscript, shellStartPosition).then(res => {
+                  resolve(res);
+                });
               })
             );
           }
         }
       }
       if (promises.length > 0) {
-        Promise.all(promises).then((this.message = "No results"));
-      } else this.message = "No results";
+        Promise.all(promises).then(() => {
+          if (this.outputs.length == 0) {
+            this.message = "No problems detected";
+          } else {
+            this.message = "Done analysis!";
+          }
+        });
+      } else this.message = "No problems detected";
     },
 
     async checkshell(shellscript, shellStartPosition) {
@@ -410,6 +416,7 @@ RUN apt-get clean -y      && \\
         shellscript = shellscript.replace(/\r\n/g, "\n");
         // const shellscript = shellscript.replace('\r', '\n')
         const ast = parse(shellscript, { insertLOC: true });
+        var subPromises = [];
         traverse(ast, {
           Command: node => {
             // have a check for `name` key. some command like redirect (when people mistakenly put it at the beginning)
@@ -462,49 +469,56 @@ RUN apt-get clean -y      && \\
                 });
               }
             } else {
-              this.checkCommand(commandline, commandName).then(
-                res => {
-                  const commandInfo = res.data.commandInfo;
-                  if (Object.keys(commandInfo).length > 0) {
-                    this.commandInfo[commandName] = commandInfo;
+              subPromises.push(
+                this.checkCommand(commandline, commandName).then(
+                  res => {
+                    const commandInfo = res.data.commandInfo;
+                    if (Object.keys(commandInfo).length > 0) {
+                      this.commandInfo[commandName] = commandInfo;
+                    }
+                    const marker = res.data.marker;
+                    if (marker != null) {
+                      const severityCode =
+                        monaco.MarkerSeverity[marker.severity];
+                      console.assert(
+                        severityCode != null,
+                        "marker.severty should be one of `Error`, `Warning`, `Info`, `Hint`"
+                      );
+                      marker.severity = severityCode;
+                      console.log("this is the marker");
+                      console.log(marker);
+                      this.lruCache.put(commandline, marker);
+                      var modifiedMarker = this.modifyMarker(
+                        marker,
+                        position.start
+                      );
+                      this.errorMarkers.push(modifiedMarker);
+                      this.outputs.push({
+                        line: modifiedMarker.startLineNumber,
+                        col: modifiedMarker.startColumn,
+                        color:
+                          modifiedMarker.severity == 8
+                            ? "red"
+                            : "rgb(230, 141, 8)",
+                        type:
+                          modifiedMarker.severity == 8 ? "error" : "warning",
+                        commandline: commandline,
+                        message: modifiedMarker.message
+                      });
+                      console.log(this.outputs);
+                    }
+                  },
+                  error => {
+                    console.log("can not access");
+                    console.log(error);
                   }
-                  const marker = res.data.marker;
-                  if (marker != null) {
-                    const severityCode = monaco.MarkerSeverity[marker.severity];
-                    console.assert(
-                      severityCode != null,
-                      "marker.severty should be one of `Error`, `Warning`, `Info`, `Hint`"
-                    );
-                    marker.severity = severityCode;
-                    console.log("this is the marker");
-                    console.log(marker);
-                    this.lruCache.put(commandline, marker);
-                    var modifiedMarker = this.modifyMarker(
-                      marker,
-                      position.start
-                    );
-                    this.errorMarkers.push(modifiedMarker);
-                    this.outputs.push({
-                      line: modifiedMarker.startLineNumber,
-                      col: modifiedMarker.startColumn,
-                      color:
-                        modifiedMarker.severity == 8
-                          ? "red"
-                          : "rgb(230, 141, 8)",
-                      type: modifiedMarker.severity == 8 ? "error" : "warning",
-                      commandline: commandline,
-                      message: modifiedMarker.message
-                    });
-                    console.log(this.outputs);
-                  }
-                },
-                error => {
-                  console.log("can not access");
-                  console.log(error);
-                }
+                )
               );
             }
           }
+        });
+        return Promise.all(subPromises).then(() => {
+          console.log("all subpromises done!");
         });
       } catch (e) {
         if (e instanceof Error) {
@@ -570,6 +584,7 @@ RUN apt-get clean -y      && \\
   margin: 0 auto;
   margin-bottom: 0.2em;
   color: grey;
+  font-size: 95%;
 }
 .example {
   cursor: pointer;
