@@ -20,8 +20,8 @@
       <p style="margin-left: 0.3em;margin-top:0.5em;margin-bottom:0em">
         {{ message }}
       </p>
-      <div v-show="allOutputs.length == 0" style="margin-top:0.5em"></div>
-      <div v-for="(output, index) in allOutputs" :key="index">
+      <div v-show="outputs.length == 0" style="margin-top:0.5em"></div>
+      <div v-for="(output, index) in outputs" :key="index">
         <div style="margin-left: 0.3em;margin-top:0.7em">
           <span :style="{ color: output.color }">{{ output.type }}</span> in
           <span
@@ -47,61 +47,8 @@
 <script>
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import axios from "axios";
-
-const parse = require("bash-parser");
-const traverse = require("bash-ast-traverser");
-const DockerfileParser = require("dockerfile-ast").DockerfileParser;
-
-class LRUCache {
-  constructor(capacity) {
-    this.cache = new Map();
-    this.capacity = capacity;
-  }
-
-  has(key) {
-    return this.cache.has(key);
-  }
-
-  get(key) {
-    if (!this.cache.has(key)) return -1;
-
-    const v = this.cache.get(key);
-    this.cache.delete(key);
-    this.cache.set(key, v);
-    return this.cache.get(key);
-  }
-
-  put(key, value) {
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
-    }
-    this.cache.set(key, value);
-    if (this.cache.size > this.capacity) {
-      this.cache.delete(this.cache.keys().next().value); // keys().next().value returns first item's key
-    }
-  }
-}
-
-const dockerfile_all_instructions = [
-  "add",
-  "arg",
-  "cmd",
-  "copy",
-  "entrypoint",
-  "env",
-  "expose",
-  "from",
-  "healthcheck",
-  "label",
-  "maintainer",
-  "onbuild",
-  "run",
-  "shell",
-  "stopsignal",
-  "user",
-  "volume",
-  "workdir"
-];
+import * as utils from "./utils.js";
+import { LRUCache } from "./LRUcache.js";
 export { monaco };
 
 export default {
@@ -120,10 +67,10 @@ export default {
       errorMarkers: [],
       explanation: "",
       commandRange: {},
-      commandInfo: {},
+      AllCommandInfo: {},
       message:
         "The analysis result will be here. Loading for the first time may take a few seconds",
-      allOutputs: [],
+      outputs: []
     };
   },
 
@@ -197,14 +144,21 @@ RUN apt-get clean -y      && \\
       console.log("new");
       console.log(position);
       console.log("the command_range is");
-      console.log(this.commandRange);
       let commandName = this.getCommandName(position);
       if (commandName != null) {
-        const words = this.getWords(model, position);
+        const words = utils.getWords(model, position);
         console.log(words + "  is the word");
-        var expl = this.find_explanation(commandName, words.word);
+        var expl = utils.find_explanation(
+          this.AllCommandInfo,
+          commandName,
+          words.word
+        );
         if (expl == null) {
-          expl = this.find_explanation(commandName, words.char);
+          expl = utils.find_explanation(
+            this.AllCommandInfo,
+            commandName,
+            words.char
+          );
         }
         if (expl != null) {
           return {
@@ -225,100 +179,24 @@ RUN apt-get clean -y      && \\
 
     getCommandName(position) {
       //TODO: use binary search instead or a hashmap for better performance
-      for (const command of this.commandRange) {
-        if (
-          position.lineNumber >= command["start"]["row"] &&
-          position.lineNumber <= command["end"]["row"] &&
-          position.column >= command["start"]["col"] &&
-          position.column <= command["end"]["col"]
-        ) {
-          return command.commandName;
+      const l = [position.lineNumber, position.column];
+      if (Object.keys(this.commandRange).length > 0) {
+        for (const command of this.commandRange) {
+          if (
+            utils.isSmallerOrEqual(
+              [command["start"]["row"], command["start"]["col"]],
+              l
+            ) &&
+            utils.isSmallerOrEqual(l, [
+              command["end"]["row"],
+              command["end"]["col"]
+            ])
+          ) {
+            return command.commandName;
+          }
         }
       }
       return null;
-    },
-
-    getWords(model, position) {
-      const value = model.getLineContent(position.lineNumber);
-      let i = position.column - 1;
-      const char = value[i];
-      var re = /[\w-]/;
-      while (i >= 0) {
-        if (re.test(value[i])) {
-          i--;
-        } else {
-          break;
-        }
-      }
-      let j = position.column - 1;
-      while (j < value.length) {
-        if (re.test(value[j])) {
-          j++;
-        } else {
-          break;
-        }
-      }
-      let words = {
-        char: char,
-        word: value.slice(i + 1, j)
-      };
-      return words;
-    },
-
-    offset_position(start, position) {
-      if (position.start.row == 1) {
-        position.start.col += start.col - 1;
-      }
-      if (position.end.row == 1) {
-        position.end.col += start.col - 1;
-      }
-      position.start.row += start.row - 1;
-      position.end.row += start.row - 1;
-      return position;
-    },
-
-    modifyMarker(marker, start) {
-      const modifiedMarker = Object.assign({}, marker);
-      if (modifiedMarker.endLineNumber == null) {
-        modifiedMarker.endLineNumber = modifiedMarker.startLineNumber;
-      }
-      if (modifiedMarker.endColumn == null) {
-        modifiedMarker.endColumn = modifiedMarker.startColumn + 1;
-      }
-
-      if (modifiedMarker.startLineNumber == 1) {
-        modifiedMarker.startColumn += start.col - 1;
-      }
-      if (modifiedMarker.endLineNumber == 1) {
-        modifiedMarker.endColumn += start.col - 1;
-      }
-      modifiedMarker.startLineNumber += start.row - 1;
-      modifiedMarker.endLineNumber += start.row - 1;
-
-      return modifiedMarker;
-    },
-
-    find_explanation(commandName, word) {
-      const commandInfo = this.commandInfo[commandName];
-      if (commandInfo != null) {
-        var Pair_key = null;
-        var found_key = word;
-        if (word in commandInfo["explanation_key_to_ExplanationPair_key"])
-          Pair_key =
-            commandInfo["explanation_key_to_ExplanationPair_key"][word];
-        else if (word in commandInfo["option_keys_to_OptionPair_key"])
-          Pair_key = commandInfo["option_keys_to_OptionPair_key"][word];
-        else if ("-" + word in commandInfo["option_keys_to_OptionPair_key"]) {
-          found_key = "-" + word;
-          Pair_key = commandInfo["option_keys_to_OptionPair_key"][found_key];
-        }
-        if (Pair_key != null)
-          return {
-            found_key: found_key,
-            explanation: commandInfo.explanation[Pair_key]
-          };
-        return null;
-      }
     },
 
     initMonaco() {
@@ -331,235 +209,33 @@ RUN apt-get clean -y      && \\
         hover: { delay: 300 }
       });
       this.editor.onDidChangeModelContent(() => {
-        console.log("in the ondidchange", this.doneAnalysis);
-        this.clcheck(this.editor.getValue());
+        this.outputs = [];
+        this.message =
+          "Analyzing...(loading for the first time may take a few seconds)";
+        utils
+          .clcheck(
+            this.editor.getValue(),
+            this.language,
+            this.AllCommandInfo,
+            this.lruCache,
+            this.path
+          )
+          .then(res => {
+            if (res.outputs.length == 0) {
+              this.message = "No problems detected!";
+            } else {
+              this.message = "Done analysis!";
+              this.outputs = res.outputs;
+              this.errorMarkers = res.errorMarkers;
+              this.commandRange = res.commandRange;
+            }
+          });
       });
       monaco.languages.registerHoverProvider("shell", {
         provideHover: this.provideHover
       });
       monaco.languages.registerHoverProvider("dockerfile", {
         provideHover: this.provideHover
-      });
-    },
-
-    clcheck(code) {
-      this.commandRange = [];
-      this.errorMarkers = [];
-      this.outputs = [];
-      this.allOutputs = [];
-      this.message = "Analyzing...(loading for the first time may take a few seconds)";
-      var promises = [];
-      if (this.language === "shell") {
-        promises.push(
-          new Promise(resolve => {
-            this.checkshell(code, { row: 1, col: 1 }).then(resolve());
-          })
-        );
-      } else {
-        let dockerfile = DockerfileParser.parse(code);
-        let instructions = dockerfile.getInstructions();
-        for (let instruction of instructions) {
-          const keyWord = instruction.getKeyword();
-          if (
-            !dockerfile_all_instructions.includes(keyWord.toLowerCase()) &&
-            !keyWord.startsWith("{")
-          ) {
-            const range = instruction.getRange();
-            const marker = {
-              startLineNumber: range.start.line + 1,
-              startColumn: range.start.character + 1,
-              endLineNumber: range.start.line + 1,
-              endColumn: keyWord.length,
-              severity: monaco.MarkerSeverity.Error,
-              message: `Unknow instruction "${instruction.instruction}"`
-            };
-            this.errorMarkers.push(marker);
-            this.outputs.push({
-              line: marker.startLineNumber,
-              col: marker.startColumn,
-              color: "red",
-              type: "error",
-              commandline: instruction.getTextContent(),
-              message: marker.message
-            });
-          }
-          if (instruction.getKeyword() === "RUN") {
-            const range = instruction.getRange();
-            const shellStartPosition = {
-              row: range.start.line + 1,
-              col: range.start.character + 1 + 4
-            };
-            const shellscript = instruction.getTextContent().slice(4);
-            promises.push(
-              new Promise(resolve => {
-                this.checkshell(shellscript, shellStartPosition).then(res => {
-                  resolve(res);
-                });
-              })
-            );
-          }
-        }
-      }
-      if (promises.length > 0) {
-        Promise.all(promises).then(() => {
-          if (this.outputs.length == 0) {
-            this.message = "No problems detected";
-          } else {
-            this.message = "Done analysis!";
-            this.allOutputs = this.outputs
-          }
-        });
-      } else this.message = "No problems detected";
-    },
-
-    async checkshell(shellscript, shellStartPosition) {
-      try {
-        shellscript = shellscript.replace(/\r\n/g, "\n");
-        // const shellscript = shellscript.replace('\r', '\n')
-        const ast = parse(shellscript, { insertLOC: true });
-        var subPromises = [];
-        traverse(ast, {
-          Command: node => {
-            // have a check for `name` key. some command like redirect (when people mistakenly put it at the beginning)
-            // don't have such key
-            if (node.name == null) {
-              console.log(node, "the command doesn't have name");
-              return;
-            }
-            const commandName = node.name.text;
-            var start = node.loc.start;
-            var end = node.loc.end;
-            if (node.suffix) {
-              var n;
-              for (n of node.suffix) {
-                if (
-                  n.type === "Word" &&
-                  !n.text.startsWith("`") &&
-                  !n.text.startsWith("$")
-                )
-                  end = n.loc.end;
-              }
-            }
-            const commandline = shellscript.slice(start.char, end.char + 1);
-            var position = {
-              start: start,
-              end: end
-            };
-            position = this.offset_position(shellStartPosition, position);
-            this.commandRange.push({
-              commandName: commandName,
-              start: position.start,
-              end: position.end
-            });
-            if (this.lruCache.has(commandline)) {
-              const marker = this.lruCache.get(commandline);
-              if (marker != null) {
-                const modifiedMarker = this.modifyMarker(
-                  marker,
-                  position.start
-                );
-                this.errorMarkers.push(modifiedMarker);
-                this.outputs.push({
-                  line: modifiedMarker.startLineNumber,
-                  col: modifiedMarker.startColumn,
-                  color:
-                    modifiedMarker.severity == 8 ? "red" : "rgb(230, 141, 8)",
-                  type: modifiedMarker.severity == 8 ? "error" : "warning",
-                  commandline: commandline,
-                  message: modifiedMarker.message
-                });
-              }
-            } else {
-              subPromises.push(
-                this.checkCommand(commandline, commandName).then(
-                  res => {
-                    const commandInfo = res.data.commandInfo;
-                    if (Object.keys(commandInfo).length > 0) {
-                      this.commandInfo[commandName] = commandInfo;
-                    }
-                    const marker = res.data.marker;
-                    if (marker != null) {
-                      const severityCode =
-                        monaco.MarkerSeverity[marker.severity];
-                      console.assert(
-                        severityCode != null,
-                        "marker.severty should be one of `Error`, `Warning`, `Info`, `Hint`"
-                      );
-                      marker.severity = severityCode;
-                      console.log("this is the marker");
-                      console.log(marker);
-                      this.lruCache.put(commandline, marker);
-                      var modifiedMarker = this.modifyMarker(
-                        marker,
-                        position.start
-                      );
-                      this.errorMarkers.push(modifiedMarker);
-                      this.outputs.push({
-                        line: modifiedMarker.startLineNumber,
-                        col: modifiedMarker.startColumn,
-                        color:
-                          modifiedMarker.severity == 8
-                            ? "red"
-                            : "rgb(230, 141, 8)",
-                        type:
-                          modifiedMarker.severity == 8 ? "error" : "warning",
-                        commandline: commandline,
-                        message: modifiedMarker.message
-                      });
-                      console.log(this.outputs);
-                    }
-                  },
-                  error => {
-                    console.log("can not access");
-                    console.log(error);
-                  }
-                )
-              );
-            }
-          }
-        });
-        return Promise.all(subPromises).then(() => {
-          console.log("all subpromises done!");
-        });
-      } catch (e) {
-        if (e instanceof Error) {
-          console.log("parsing error");
-          const start_index = "Parse error on line ".length;
-          const end_index = e.message.indexOf(":");
-          let lineNumber = parseInt(e.message.slice(start_index, end_index));
-          lineNumber += shellStartPosition.row - 1;
-          let marker = {
-            startLineNumber: lineNumber,
-            endLineNumber: lineNumber,
-            startColumn: 1,
-            endColumn: 1000,
-            message: "Parsing Error" + e.message.slice(end_index),
-            severity: monaco.MarkerSeverity.Error
-          };
-          this.errorMarkers.push(marker);
-          this.outputs.push({
-            line: lineNumber,
-            col: marker.startColumn,
-            color: "red",
-            type: "error",
-            commandline: this.editor.getModel().getLineContent(lineNumber),
-            message: marker.message
-          });
-          console.log(e);
-
-          console.log(e.message);
-        } else {
-          throw e; // re-throw the error unchanged
-        }
-      }
-    },
-
-    async checkCommand(commandline, commandName) {
-      return axios({
-        method: "POST",
-        url: this.path + "checkcommand/",
-        headers: { "Content-Type": "application/json" },
-        data: { commandline: commandline, commandName: commandName }
       });
     }
   }
