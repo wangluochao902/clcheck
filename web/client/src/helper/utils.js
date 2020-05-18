@@ -3,6 +3,7 @@ const traverse = require("bash-ast-traverser");
 const DockerfileParser = require("dockerfile-ast").DockerfileParser;
 import axios from "axios";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+console.log = function() {};
 
 const dockerfileAllInstructions = [
   "add",
@@ -22,7 +23,8 @@ const dockerfileAllInstructions = [
   "stopsignal",
   "user",
   "volume",
-  "workdir"
+  "workdir",
+  "cross_build_copy"
 ];
 
 export function getWords(model, position) {
@@ -147,11 +149,22 @@ function addParsingError(
   errorMarkers,
   outputs
 ) {
-  const start_index = "Parse error on line ".length;
-  const end_index = e.message.indexOf(":");
+  // todo: the parser raises a false positive on "$(var $(var2))"
+  if (
+    e.message == "Unclosed $(" ||
+    e.message == 'Unclosed "' ||
+    e.message == "Unclosed '"
+  )
+    return;
+  const start_index =
+    e.message.indexOf("Parse error on line ") + "Parse error on line ".length;
+
+  const end_index = e.message.slice(10).indexOf(":") + 10;
   let lineNumber = parseInt(e.message.slice(start_index, end_index));
   const commandline = shellscript.split("\n")[lineNumber - 1];
   lineNumber += shellStartPosition.row - 1;
+  // todo: this parsing error is a false positive. It is caused by dockerfile comment
+  if (e.message.slice(end_index) == ": Unexpected 'AND_IF'") return;
   let marker = {
     startLineNumber: lineNumber,
     endLineNumber: lineNumber,
@@ -266,17 +279,20 @@ async function checkshell(
           return;
         }
         const commandName = node.name.text;
-        var start = node.loc.start;
+        var start = node.name.loc.start;
         var end = node.loc.end;
-        if (node.suffix) {
+        if (node.suffix.length > 0) {
           var n;
           for (n of node.suffix) {
             if (
               n.type === "Word" &&
               !n.text.startsWith("`") &&
               !n.text.startsWith("$")
-            )
+            ) {
               end = n.loc.end;
+            }
+            // todo: can't handle cases like `tar -xvf abd_$(uname -m)` because of the space between inside $()
+            if (n.type === "Word" && n.text.includes("$")) return;
           }
         }
         const commandline = shellscript.slice(start.char, end.char + 1);
@@ -313,8 +329,6 @@ async function checkshell(
                     "marker.severty should be one of `Error`, `Warning`, `Info`, `Hint`"
                   );
                   marker.severity = severityCode;
-                  console.log("this is the marker");
-                  console.log(marker);
                   lruCache.put(commandline, marker);
                   var modifiedMarker = modifyMarker(marker, position.start);
                   errorMarkers.push(modifiedMarker);
@@ -346,5 +360,89 @@ async function checkCommand(path, commandline, commandName) {
     url: path + "checkcommand/",
     headers: { "Content-Type": "application/json" },
     data: { commandline: commandline, commandName: commandName }
+  });
+}
+
+export async function getDockerfile(path, index) {
+  return axios({
+    method: "POST",
+    url: path + "dockerfiles/",
+    headers: { "Content-Type": "application/json" },
+    data: { index: index }
+  });
+}
+
+export async function saveOutput(path, output) {
+  return axios({
+    method: "POST",
+    url: path + "saveOutput/",
+    headers: { "Content-Type": "application/json" },
+    data: { output: output }
+  });
+}
+
+export async function getSkipped(path) {
+  return axios.get(path + "getSkipped/");
+}
+
+export async function addToSkipped(path, details) {
+  return axios({
+    method: "POST",
+    url: path + "addToSkipped/",
+    headers: { "Content-Type": "application/json" },
+    data: { details: details }
+  });
+}
+
+export async function deleteFromSkipped(path, objectIdIndex) {
+  return axios({
+    method: "POST",
+    url: path + "deleteFromSkipped/",
+    headers: { "Content-Type": "application/json" },
+    data: { objectIdIndex: objectIdIndex }
+  });
+}
+
+export async function getUnknown(path) {
+  return axios.get(path + "getUnknown/");
+}
+
+export async function addToUnknown(path, details) {
+  return axios({
+    method: "POST",
+    url: path + "addToUnknown/",
+    headers: { "Content-Type": "application/json" },
+    data: { details: details }
+  });
+}
+
+export async function deleteFromUnknown(path, objectIdIndex) {
+  return axios({
+    method: "POST",
+    url: path + "deleteFromUnknown/",
+    headers: { "Content-Type": "application/json" },
+    data: { objectIdIndex: objectIdIndex }
+  });
+}
+
+export async function getBugs(path) {
+  return axios.get(path + "getBugs/");
+}
+
+export async function addToBug(path, details) {
+  return axios({
+    method: "POST",
+    url: path + "addToBug/",
+    headers: { "Content-Type": "application/json" },
+    data: { details: details }
+  });
+}
+
+export async function deleteFromBug(path, objectIdIndex) {
+  return axios({
+    method: "POST",
+    url: path + "deleteFromBug/",
+    headers: { "Content-Type": "application/json" },
+    data: { objectIdIndex: objectIdIndex }
   });
 }

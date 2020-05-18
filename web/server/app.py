@@ -1,5 +1,5 @@
 import re
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 from flask_cors import CORS
 # from flask_bootstrap import Bootstrap
 
@@ -31,11 +31,21 @@ CORS(app,
          }
      })
 
+if os.environ['ENV'] != "production":
+    import pymongo, pickle
+    db = pymongo.MongoClient('localhost')['dockerfiles']
+    dockerfile_collection = db['dockerfiles']
+    skipped_collection = db['skipped']
+    unknown_collection = db['unknown']
+    bug_collection = db['bug']
+    with open('dockerfiles/object_ids.pkl', 'rb') as f:
+        object_ids = pickle.load(f)
+else:
+    dockerfile_collection = None
 
 @app.route('/')
 def home():
     return 'hello clcheck'
-
 
 @app.route('/checkcode/', methods=['GET', 'POST'])
 def checkcode():
@@ -127,6 +137,126 @@ def explain():
         explanation = ''
     result = {'found_key': found_key, "explanation": explanation}
     return jsonify(result)
+
+@app.route('/clcheck/dockerfiles/', methods=['GET', 'POST'])
+def get_dockerfile():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    index = request.json['index']
+    if index >= len(object_ids):
+        abort(404, f"index({index}) should be smaller than {len(object_ids)}")
+    r = dockerfile_collection.find_one({"_id": object_ids[index]})
+    return jsonify({"code":r['code'], "repository": r['repo_name'], "file": r['file_path']})
+
+@app.route('/clcheck/saveOutput/', methods=['GET', 'POST'])
+def get_output():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    output = request.json['output']
+    import json
+    if os.path.exists('./error_outputs.json'):
+        with open('./error_outputs.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        data = {"results": []}
+    data['results'].append(output)
+    try:
+        with open('./error_outputs.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+    except json.decoder.JSONDecodeError:
+        pass
+    return "finish"
+
+@app.route('/clcheck/getSkipped/', methods=['GET'])
+def get_skipped():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    responce = skipped_collection.find({})
+    skipped = [r['objectIdIndex'] for r in responce]
+    return jsonify({"skipped_index": skipped})
+    
+@app.route('/clcheck/addToSkipped/', methods=['GET', 'POST'])
+def add_to_skipped():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    try:
+        details = request.json['details']
+        skipped_collection.insert_one(details)
+        return {'Added': True}
+    except:
+        abort(404, description="can not add to the database")
+
+@app.route('/clcheck/deleteFromSkipped/', methods=['GET', 'POST'])
+def delete_from_skipped():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    try:
+        objectIdIndex = request.json['objectIdIndex']
+        skipped_collection.delete_one({"objectIdIndex":objectIdIndex})
+        return {'deleted': True}
+    except:
+        abort(404, description="can not add to the database")
+
+@app.route('/clcheck/getUnknown/', methods=['GET'])
+def get_unknown():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    responce = unknown_collection.find({})
+    unknown = [r['objectIdIndex'] for r in responce]
+    return jsonify({"unknown_index": unknown})
+    
+@app.route('/clcheck/addToUnknown/', methods=['GET', 'POST'])
+def add_to_unknown():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    try:
+        details = request.json['details']
+        unknown_collection.insert_one(details)
+        return {'Added': True}
+    except:
+        abort(404, description="can not add to the database")
+
+@app.route('/clcheck/deleteFromUnknown/', methods=['GET', 'POST'])
+def delete_from_unknown():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    try:
+        objectIdIndex = request.json['objectIdIndex']
+        unknown_collection.delete_one({"objectIdIndex":objectIdIndex})
+        return {'deleted': True}
+    except:
+        abort(404, description="can not add to the database")
+
+@app.route('/clcheck/getBugs/', methods=['GET'])
+def get_bugs():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    responce = bug_collection.find({})
+    bugs = [r['objectIdIndex'] for r in responce]
+    return jsonify({"bugs": bugs})
+    
+@app.route('/clcheck/addToBug/', methods=['GET', 'POST'])
+def add_to_bug():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    try:
+        details = request.json['details']
+        bug_collection.insert_one(details)
+        return {'Added': True}
+    except:
+        abort(404, description="can not add to the database")
+
+@app.route('/clcheck/deleteFromBug/', methods=['GET', 'POST'])
+def delete_from_bug():
+    if os.environ['ENV'] == 'production':
+        abort(404, description="not available in production mode")
+    try:
+        objectIdIndex = request.json['objectIdIndex']
+        bug_collection.delete_one({"objectIdIndex":objectIdIndex})
+        return {'deleted': True}
+    except:
+        abort(404, description="can not add to the database")
+
 
 
 def refine_markers_and_command_range(pre_lines, pre_cols, markers,

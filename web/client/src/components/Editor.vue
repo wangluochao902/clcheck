@@ -47,8 +47,8 @@
 <script>
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import axios from "axios";
-import * as utils from "./utils.js";
-import { LRUCache } from "./LRUcache.js";
+import * as utils from "../helper/utils.js";
+import { LRUCache } from "../helper/LRUcache.js";
 export { monaco };
 
 export default {
@@ -210,6 +210,7 @@ RUN apt-get clean -y      && \\
       });
       this.editor.onDidChangeModelContent(() => {
         this.outputs = [];
+        this.errorMarkers = [];
         this.message =
           "Analyzing...(loading for the first time may take a few seconds)";
         utils

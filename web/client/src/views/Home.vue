@@ -84,7 +84,13 @@
             style="color: blue; font-size:100%; text-decoration: none"
             target="_blank"
             >GitHub</a
-          >
+          >.
+        </h4>
+        <h4 style="text-align:center">
+          Visit other projects at
+          <a href="https://smart-scripts.org" target="_blank"
+            >smart-scripts.org</a
+          >.
         </h4>
         <p style="font-size:60%; text-align:left">
           © 2020 wangluochao All Rights Reserved
