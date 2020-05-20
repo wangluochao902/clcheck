@@ -4,6 +4,7 @@ const DockerfileParser = require("dockerfile-ast").DockerfileParser;
 import axios from "axios";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 console.log = function() {};
+const utf8 = require("utf8");
 
 const dockerfileAllInstructions = [
   "add",
@@ -149,6 +150,10 @@ function addParsingError(
   errorMarkers,
   outputs
 ) {
+  //todo: the parser raises error on "`# .*`"
+  const regex = /[\s\S]*`#[\S\s]*`[\s\S]*/g;
+  if (regex.test(shellscript)) return;
+
   // todo: the parser raises a false positive on "$(var $(var2))"
   if (
     e.message == "Unclosed $(" ||
@@ -156,29 +161,76 @@ function addParsingError(
     e.message == "Unclosed '"
   )
     return;
+  if (e.message.includes("Unexpected 'CONTINUE'\n    at parse")) return;
+
   const start_index =
     e.message.indexOf("Parse error on line ") + "Parse error on line ".length;
 
   const end_index = e.message.slice(10).indexOf(":") + 10;
   let lineNumber = parseInt(e.message.slice(start_index, end_index));
-  const commandline = shellscript.split("\n")[lineNumber - 1];
-  lineNumber += shellStartPosition.row - 1;
-  // todo: this parsing error is a false positive. It is caused by dockerfile comment
-  if (e.message.slice(end_index) == ": Unexpected 'AND_IF'") return;
+
+  if (lineNumber == null) {
+    commandline = shellscript;
+    lineNumber = shellStartPosition.row;
+  } else {
+    var commandline = shellscript.split("\n")[lineNumber - 1];
+    lineNumber += shellStartPosition.row - 1;
+  }
+
+  //
+  // todo: this parsing error is a false positive. It can't handle nested if statement
+  if (e.message.slice(end_index) == ": Unexpected 'Then'") return;
+  if (
+    e.message.includes("Unexpected 'EOF'\n    at parse") &&
+    shellscript.includes("then")
+  )
+    return;
+
+  // todo: parameter substitution error
+  if (
+    e.message.includes("Unexpected 'EOF'\n    at parse") &&
+    shellscript.includes(":-")
+  )
+    return;
+
+  // todo: this parsing error is a false positive. It can't handle nested for statement
+  if (e.message.slice(end_index) == ": Unexpected 'In'") return;
+
+  // todo: parsing error
+  if (e.message.includes("Cannot read property 'start' of undefined")) return;
+  if (e.message.includes("Cannot read property 'operator' of undefined"))
+    return;
+  if (e.message.includes("Cannot read property 'char' of undefined")) return;
+  if (e.message.includes("Cannot read property 'doubleQuoting' of undefined"))
+    return;
+  if (e.message.includes("Cannot read property 'singleQuoting' of undefined"))
+    return;
+  if (e.message.includes("Cannot parse arithmetic expression")) return;
+
+  var severity = monaco.MarkerSeverity.Error;
+  var message = "Parsing Error: " + e.message;
+  message = message.replace(/Parse error on line [0-9]*: /g, "");
+
+  // todo: cause by empty line after "\"
+  if (e.message.slice(end_index) == ": Unexpected 'AND_IF'") {
+    message = "You may have empty line after a '\\'";
+    severity = monaco.MarkerSeverity.Warning;
+  }
+
   let marker = {
     startLineNumber: lineNumber,
     endLineNumber: lineNumber,
     startColumn: 1,
     endColumn: 1000,
-    message: "Parsing Error" + e.message.slice(end_index),
-    severity: monaco.MarkerSeverity.Error
+    message: message,
+    severity: severity
   };
   errorMarkers.push(marker);
   outputs.push({
     line: lineNumber,
     col: marker.startColumn,
-    color: "red",
-    type: "error",
+    color: severity == 8 ? "red" : "rgb(230, 141, 8)",
+    type: severity == 8 ? "error" : "warning",
     commandline: commandline,
     message: marker.message
   });
@@ -207,6 +259,7 @@ export function clcheck(code, language, AllCommandInfo, lruCache, path) {
     let instructions = dockerfile.getInstructions();
     for (let instruction of instructions) {
       const instructionName = instruction.instruction;
+      console.log(utf8.encode(instructionName));
       if (
         !dockerfileAllInstructions.includes(instructionName.toLowerCase()) &&
         !instructionName.startsWith("{")
@@ -267,7 +320,10 @@ async function checkshell(
 ) {
   try {
     shellscript = shellscript.replace(/\r\n/g, "\n");
-    // const shellscript = shellscript.replace('\r', '\n')
+    // replace comment with "\"
+    shellscript = shellscript.replace(/(?<=(^|\n))[ \t]*#.*(?=(\n|$))/g, "\\");
+    // delete space between"\" and"\n"
+    shellscript = shellscript.replace(/\\ +\n/g, "\\\n");
     const ast = parse(shellscript, { insertLOC: true });
     var subPromises = [];
     traverse(ast, {
@@ -292,6 +348,8 @@ async function checkshell(
               end = n.loc.end;
             }
             // todo: can't handle cases like `tar -xvf abd_$(uname -m)` because of the space between inside $()
+            if (n.type === "Word" && n.text.includes("`")) return;
+            // todo: command that has parameter substitution is omitted now. consider finding a way to add it back
             if (n.type === "Word" && n.text.includes("$")) return;
           }
         }

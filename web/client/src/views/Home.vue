@@ -69,11 +69,12 @@
             will pop out useful information.
           </li>
           <li>
-            Current supported commands are `apt-get` and `tar`.
+            Current supported commands are `apt-get`, `tar`, `cd`, `cp`, `rm`,
+            `chown`, `chmod`, `groupadd`, `mkdir`, `mv`.
           </li>
           <li>
-            Commands working in progress are `echo`, `mkdir`, `curl`, `make`,
-            `git`, `apk`, `rm`.
+            Commands working in progress are `echo`, `curl`, `make`, `git`,
+            `apk` etc.
           </li>
         </ul>
         <h4 style="text-align:center">

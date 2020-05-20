@@ -97,7 +97,7 @@ String_0:
 	"="
 ;
 
-SequentialStatement_2[skipws]:
+SequentialStatement_2:
 	element0=String_0 element1=VERSION
 ;
 
@@ -105,7 +105,7 @@ OptionalCollection_0:
 	(statement0=SequentialStatement_2)
 ;
 
-SequentialStatement_1[skipws]:
+SequentialStatement_1:
 	element0=PKG element1=OptionalCollection_0?
 ;
 
@@ -113,7 +113,7 @@ OneMustPresentCollection_0[noskipws]:
 	/[ 	]*/- (statement0=SequentialStatement_1) /[ 	]*/-
 ;
 
-SequentialStatement_0[skipws]:
+SequentialStatement_0:
 	element0=OneMustPresentCollection_0
 ;
 
@@ -121,7 +121,7 @@ String_1:
 	"dangerous option"
 ;
 
-SequentialStatement_3[skipws]:
+SequentialStatement_3:
 	element0=String_1
 ;
 
@@ -1194,7 +1194,7 @@ OptionalCollection_1:
 ;
 
 SequentialStatement_17:
-	element0=sPKG element1=OptionalCollection_1?
+	element0=bPKG element1=OptionalCollection_1?
 ;
 
 OneMustPresentCollection_2[noskipws]:
@@ -1261,12 +1261,12 @@ OptionalCollection_4:
 	(statement0=SequentialStatement_25)
 ;
 
-sPKG_0_Multi:
-	types*=sPKG
+bPKG_0_Multi:
+	types*=bPKG
 ;
 
 SequentialStatement_24:
-	element0=SubCommand_2 element1=OptionalCollection_4? element2=sPKG_0_Multi
+	element0=SubCommand_2 element1=OptionalCollection_4? element2=bPKG_0_Multi
 ;
 
 SubCommand_3:
@@ -1313,12 +1313,12 @@ OptionalCollection_5:
 	(statement0=SequentialStatement_31)
 ;
 
-sANY_0_Multi:
-	types*=sANY
+bANY_0_Multi:
+	types*=bANY
 ;
 
 SequentialStatement_30:
-	element0=SubCommand_7 element1=OptionalCollection_5? element2=sANY_0_Multi
+	element0=SubCommand_7 element1=OptionalCollection_5? element2=bANY_0_Multi
 ;
 
 SubCommand_8:
@@ -1341,12 +1341,12 @@ OptionalCollection_6:
 	(statement0=SequentialStatement_34)
 ;
 
-sPKG_1_Multi:
-	types*=sPKG
+bPKG_1_Multi:
+	types*=bPKG
 ;
 
 SequentialStatement_33:
-	element0=SubCommand_9 element1=OptionalCollection_6? element2=sPKG_1_Multi
+	element0=SubCommand_9 element1=OptionalCollection_6? element2=bPKG_1_Multi
 ;
 
 SubCommand_10:
@@ -1361,12 +1361,12 @@ OptionalCollection_7:
 	(statement0=SequentialStatement_36)
 ;
 
-sPKG_2_Multi:
-	types*=sPKG
+bPKG_2_Multi:
+	types*=bPKG
 ;
 
 SequentialStatement_35:
-	element0=SubCommand_10 element1=OptionalCollection_7? element2=sPKG_2_Multi
+	element0=SubCommand_10 element1=OptionalCollection_7? element2=bPKG_2_Multi
 ;
 
 SubCommand_11:
@@ -1401,12 +1401,12 @@ OptionalCollection_9:
 	(statement0=SequentialStatement_40)
 ;
 
-sPKG_3_Multi:
-	types*=sPKG
+bPKG_3_Multi:
+	types*=bPKG
 ;
 
 SequentialStatement_39:
-	element0=SubCommand_12 element1=OptionalCollection_9? element2=sPKG_3_Multi
+	element0=SubCommand_12 element1=OptionalCollection_9? element2=bPKG_3_Multi
 ;
 
 SubCommand_13:
@@ -1421,12 +1421,12 @@ OptionalCollection_10:
 	(statement0=SequentialStatement_42)
 ;
 
-sPKG_4_Multi:
-	types*=sPKG
+bPKG_4_Multi:
+	types*=bPKG
 ;
 
 SequentialStatement_41:
-	element0=SubCommand_13 element1=OptionalCollection_10? element2=sPKG_4_Multi
+	element0=SubCommand_13 element1=OptionalCollection_10? element2=bPKG_4_Multi
 ;
 
 SubCommand_14:
@@ -1518,7 +1518,7 @@ VERSION:
     /(?!-)[^=\s]+/ | STRING
 ;
 
-sANY:
+bANY:
     STRING | /(?<!(\w|\-))(?!-)[\S]+(?!(\w|\-))/
 ;
 
@@ -1526,11 +1526,15 @@ ANY:
     STRING | /(?!-)[\S]+/
 ;
 
+bPATHorDIR:
+    bPATH | bDIR
+;
+
 PATH:
     /(?!-)\/?(\S*\/)*\S+/ | STRING
 ;
 
-sPATH:
+bPATH:
     /(?<!(\w|\-))(?!-)\/?(\S*\/)*\S+/ | STRING
 ;
 
@@ -1538,7 +1542,7 @@ DIR:
     /(?!-)\/?(\S*\/)*\S+\/?/ | STRING
 ;
 
-sDIR:
+bDIR:
     /(?<!(\w|\-))(?!-)\/?(\S*\/)*\S+\/?/ | STRING
 ;
 
@@ -1546,6 +1550,14 @@ PKG:
     /(?!-)[^=\s]+/
 ;
 
-sPKG:
+bPKG:
     /(?<!(\w|\-))(?!-)[^=\s]+/
+;
+
+sINT:
+    /[-+]?[0-9]+(?=(\s|$))/
+;
+
+INT:
+    sINT | /"[-+]?[0-9]+"(?=(\s|$))|'[-+]?[0-9]+'(?=(\s|$))/
 ;

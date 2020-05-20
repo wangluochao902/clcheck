@@ -20,3 +20,11 @@ with open(os.path.join(eman_dir, 'tar.eman'), 'r') as f:
 
 with open(os.path.join(test_eman2_dir, 'after_translated.txt'), 'r') as f:
 	after_translated = f.read()
+
+
+with open(os.path.join(eman_dir, 'rm.eman'), 'r') as f:
+	eman3_full = f.read()
+
+
+with open(os.path.join(eman_dir, 'groupadd.eman'), 'r') as f:
+	eman_groupadd = f.read()

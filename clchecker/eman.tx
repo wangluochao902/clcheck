@@ -31,7 +31,7 @@ Type:
 ;
 
 TypeName:
-    'INT' | 'FLOAT' | 'BOOL' | 'STRING' | 'ANY' | 'sANY'| /\/[\s\S]+?\// | 'VERSION' | 'PATH' | 'DIR' | 'PKG' | 'sPATH' | 'sDIR' | 'sPKG'
+    'sINT' | 'INT' | 'FLOAT' | 'BOOL' | 'STRING' | 'ANY' | 'bANY'| /\/[\s\S]+?\// | 'VERSION' | 'PATH' | 'DIR' | 'PKG' | 'bPATHorDIR' | 'bPATH' | 'bDIR' | 'bPKG'
 ;
 
 // Since an UnorderedStatement can be an element of a SequentialStatement, we put UnorderedStatement

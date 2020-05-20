@@ -2,18 +2,18 @@ e-synopsis:
     apt-get [<options>]
     {
         update |
-        upgrade [<options>] <sPKG>* |
+        upgrade [<options>] <bPKG>* |
         full-upgrade |
         dselect-upgrade |
         dist-upgrade |
         check |
-        clean [<options>] <sANY>*|
+        clean [<options>] <bANY>*|
         autoclean |
-        autoremove [<options>] <sPKG>* |
-        auto-remove [<options>] <sPKG>* |
+        autoremove [<options>] <bPKG>* |
+        auto-remove [<options>] <bPKG>* |
         install [<options>] <pkg-with-optional-version>* |
-        remove [<options>] <sPKG>*  |
-        purge [<options>] <sPKG>* |
+        remove [<options>] <bPKG>*  |
+        purge [<options>] <bPKG>* |
         source [<options>] <pkg-with-optional-version>+ |
         build-dep [<options>] <pkg-with-optional-version>+ |
         download [<options>] <pkg-with-optional-version>+  |
@@ -22,7 +22,7 @@ e-synopsis:
     } [<options>]
 
     e-variables:
-        e-let pkg-with-optional-version = {{<sPKG>["="<VERSION>]}(NWS) [<options>]}
+        e-let pkg-with-optional-version = {{<bPKG>["="<VERSION>]}(NWS) [<options>]}
         e-let m1 = "dangerous option"
     e-end
 e-end

@@ -101,6 +101,27 @@ def test_check_apt_get(translator_clchecker):
     commandline = "apt-get --assume-no install -qq"
     clchecker.check(command_name, commandline, debug=True)
 
+def test_check_rm(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman3_full,
+                         save_to_db=True,
+                         save_to_file=True,
+                         save_dir=config.EMANDIR)
+    command_name = "rm"
+    commandline = "rm -rf /bazel"
+    clchecker.check(command_name, commandline)
+
+def test_check_groupadd(translator_clchecker):
+    translator, clchecker = translator_clchecker
+    translator.translate(utils.eman_groupadd,
+                         save_to_db=True,
+                         save_to_file=True,
+                         save_dir=config.EMANDIR)
+    command_name = "groupadd"
+    commandline = 'groupadd -K GID_MIN=2\tb'
+    clchecker.check(command_name, commandline)
+
+
 def test_check_CLSyntaxError(translator_clchecker):
     translator, clchecker = translator_clchecker
     translator.translate(utils.eman1_full,
@@ -137,7 +158,10 @@ def test_tar(translator_clchecker):
         save_dir=config.EMANDIR,
         allow_ShortOptionWithValue_at_the_end_of_CombinedShortOption=True)
     command_name = "tar"
-    commandline = "tar -cvf tecmint-14-09-12.tar /home/tecmint/"
+    # commandline = "tar -cvf tecmint-14-09-12.tar /home/tecmint/"
+    # clchecker.check(command_name, commandline, debug=True)
+
+    commandline = 'tar --extract --file "openssl.tar.gz" --directory "/tmp/openssl/"  --strip-components="3"'
     clchecker.check(command_name, commandline, debug=True)
 
     commandline = "tar xvf dockerbins.tgz docker/docker --strip-components 1"

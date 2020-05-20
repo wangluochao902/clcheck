@@ -161,7 +161,7 @@ class Translator():
 
     def process_traditional_usage(self):
         # kind of specical for "tar" command(old style). Used when specifying the "TRADITIONAL" keyword
-        # tar [<TRADITIONAL>] [<options>] <sANY>*
+        # tar [<TRADITIONAL>] [<options>] <bANY>*
         # https://www.gnu.org/software/tar/manual/tar.html
         short_options = [
             i for s in self.all_Sessions_ShortOptionWithValue_no_dash_option_key_clsnames
@@ -185,8 +185,8 @@ class Translator():
 
         clsname_arguments = 'TraditionalUsageArgument'
         if clsname_arguments not in self.sub_rules:
-            # sANY or a-dash surrounded by whitespace or endofline
-            content_arguments = 'sANY | /(?<=( |=|\t))\-(?=( |\t|$))/'
+            # bANY or a-dash surrounded by whitespace or endofline
+            content_arguments = 'bANY | /(?<=( |=|\t))\-(?=( |\t|$))/'
             self.sub_rules[clsname_arguments] = content_arguments
             self.spec.concrete_specs[clsname_arguments]['skipws'] = True
 
@@ -319,7 +319,8 @@ class Translator():
                     i += 1
 
                 # CombinedShortOption should be put after short option with value, but before others
-                if self.allow_CombinedShortOption:
+                if self.allow_CombinedShortOption and self.all_Sessions_ShortOptionWithoutValue_clsnames[
+            option_session_index]:
                     comb_clsname, comb_readable_syntax = self.process_combined_short_option(
                         option_session_index)
                     pre_choices.append(f"choice{i}={comb_clsname}")
@@ -506,7 +507,7 @@ class Translator():
         readable_syntax_statement=''
         if single_option.statement:
             clsname_statement, readable_syntax_statement = self.process_statement(
-                single_option.statement, 'Option', variables)
+                single_option.statement, 'Option', variables, nws=False)
 
             single_option_content += f' (/(?<!( |\t))=(?!( |\t))/ | /[ \t]+/) value={clsname_statement}'
             readable_syntax_statement = "=<" + readable_syntax_statement + ">"
@@ -559,10 +560,12 @@ class Translator():
     def process_placeholder(self, placeholder, variables):
         if placeholder.value in self.OptionSession_name_to_clsnames:
             clsname = self.OptionSession_name_to_clsnames[placeholder.value]
-        if placeholder.value == 'TRADITIONAL':
+        elif placeholder.value == 'TRADITIONAL':
             return self.process_traditional_usage()
         elif placeholder.value in variables:
             clsname = variables[placeholder.value]
+        else:
+            raise ValueError(f"variable '{placeholder.value}' is not defined")
         return clsname, self.spec.clsname_to_readable_syntax[clsname]
 
     def process_collection(self, collection, session, variables):
@@ -653,7 +656,7 @@ class Translator():
             clsname = clsname_multi
         return clsname, readable_syntax
 
-    def process_statement(self, statement, session, variables):
+    def process_statement(self, statement, session, variables, nws=None):
         if statement.sequential_statement:
             statement_type = 'SequentialStatement'
             elements = statement.sequential_statement.elements
@@ -661,10 +664,10 @@ class Translator():
             statement_type = 'UnorderedStatement'
             elements = statement.unordered_statement.elements
         return self.process_statement_util(statement_type, elements, session,
-                                           variables)
+                                           variables, nws)
 
     def process_statement_util(self, statement_type, elements, session,
-                               variables):
+                               variables, nws=None):
         num = getattr(self, "num_" + statement_type + 's')
         clsname = f'{statement_type}_{num}'
         setattr(self, "num_" + statement_type + 's', num + 1)
@@ -691,8 +694,11 @@ class Translator():
             readable_syntax = '(' + readable_syntax + ')UnOrdered'
         self.sub_rules[clsname] = content
         self.spec.clsname_to_readable_syntax[clsname] = readable_syntax
-        if session == 'Option':
-            self.spec.concrete_specs[clsname]['skipws'] = True
+        if nws is not None:
+            if nws:
+                self.spec.concrete_specs[clsname]['nws'] = True
+            else:
+                self.spec.concrete_specs[clsname]['skipws'] = True
 
         return clsname, readable_syntax
 

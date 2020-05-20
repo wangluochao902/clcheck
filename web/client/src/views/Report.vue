@@ -36,12 +36,7 @@
               >
                 {{ show[outerIndex] ? "Hide" : "Show" }} Dockerfile
               </button>
-              <button
-                style="margin-left:3em"
-                v-on:click="addToSkipped(outputsInfo)"
-              >
-                add to skipped
-              </button>
+
               <button
                 style="margin-left:3em"
                 v-on:click="addToUnknown(outputsInfo)"
@@ -59,6 +54,12 @@
                 v-on:click="deleteFromBug(outputsInfo.objectIdIndex)"
               >
                 delete from bug collection
+              </button>
+              <button
+                style="margin-left:3em"
+                v-on:click="addToSkipped(outputsInfo)"
+              >
+                add to skipped
               </button>
             </div>
             <div>
@@ -83,26 +84,11 @@
               >
             </div>
           </div>
-          <div v-show="show[outerIndex]" class="dockerfile">
-            <div style="flex:0 0 3%;width:3em;">
-              <p
-                v-for="(line, index) in dockerfiles[outerIndex].split(/\n/)"
-                :key="index"
-                style="font-size:85%;margin-top:0.2em;margin-bottom:0.2em;margin-left:0.3em"
-              >
-                {{ index + 1 }}:
-              </p>
-            </div>
-            <div style="flex:1;">
-              <p
-                style="white-space: pre;font-size:85%;margin-top:0.2em;margin-bottom:0.2em;margin-left:0.3em"
-                v-for="(line, index) in dockerfiles[outerIndex].split(/\n/)"
-                :key="index"
-              >
-                {{ line }}
-              </p>
-            </div>
-          </div>
+          <div
+            v-show="show[outerIndex]"
+            :id="'editor' + outerIndex"
+            class="dockerfile"
+          ></div>
         </div>
         <button
           style="display: flex; margin:0 auto;text-align:center"
@@ -111,40 +97,44 @@
           {{ showOutput[outerIndex] ? "Hide" : "Show" }} Output
         </button>
         <div
-          v-show="showOutput[outerIndex]"
-          v-for="(output, index) in outputsInfo.outputs"
-          :key="index"
+          style="border:solid grey;width:95%;margin:0 auto;margin-top:0.4em;margin-bottom:2em"
         >
-          <div style="margin-left: 0.3em;margin-top:0.7em">
-            <span :style="{ color: output.color }">{{ output.type }}</span>
-            in
-            <span
-              style="color:blue;cursor:pointer;text-decoration:underline"
-              v-on:click="setPosition(output.line, output.col)"
-            >
-              {{ output.line }}:</span
-            >
-            <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
-              output.commandline
-            }}</span>
-          </div>
           <div
-            style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";margin-bottom:0.4em'
+            v-show="showOutput[outerIndex]"
+            v-for="(output, index) in outputsInfo.outputs"
+            :key="index"
           >
-            {{ output.message }}
+            <div style="margin-left: 0.3em;margin-top:0.7em">
+              <span :style="{ color: output.color }">{{ output.type }}</span>
+              on
+              <span
+                style="color:blue;cursor:pointer;text-decoration:underline"
+                v-on:click="setPosition(output.line, output.col)"
+              >
+                {{ output.line }}:</span
+              >
+              <span style="margin-left: 0.5em; color: rgb(71, 71, 69);">{{
+                output.commandline
+              }}</span>
+            </div>
+            <div
+              style='margin-left: 2em; color:rgb(85, 60, 23); font-family: "Consolas", "Courier New", "Monospace";margin-bottom:0.4em'
+            >
+              {{ output.message }}
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script>
 import * as utils from "../helper/utils.js";
 import { LRUCache } from "../helper/LRUcache.js";
 import { runAndSave } from "../helper/runAndSave.js";
 import Swal from "sweetalert2";
 import Vue from "vue";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 export default {
   name: "Report",
@@ -162,7 +152,8 @@ export default {
       dockerfiles: [],
       lruCache: new LRUCache(20),
       done: false,
-      finished: 0
+      finished: 0,
+      created: null
     };
   },
 
@@ -170,6 +161,26 @@ export default {
     flipDockerfile(outerIndex) {
       this.show[outerIndex] = !this.show[outerIndex];
       Vue.set(this.show, outerIndex, this.show[outerIndex]);
+      if (this.created == null) {
+        this.created = new Array(this.dockerfiles.length).fill(false);
+      }
+      if (!this.created[outerIndex]) {
+        Vue.nextTick(() => {
+          const editor = monaco.editor.create(
+            document.getElementById("editor" + outerIndex),
+            {
+              language: "dockerfile",
+              theme: "vs",
+              scrollBeyondLastLine: false,
+              minimap: { enabled: false },
+              value: this.dockerfiles[outerIndex],
+              hover: { delay: 300 }
+            }
+          );
+          editor.layout();
+          this.created[outerIndex] = true;
+        });
+      }
     },
 
     flipOutput(outerIndex) {
@@ -202,7 +213,7 @@ export default {
 
     runAllDockerfile() {
       this.clicked = true;
-      runAllDockerfile(this, 1800, 20);
+      runAllDockerfile(this, 17840, 100);
     },
 
     addToSkipped(details) {
@@ -266,13 +277,32 @@ async function checkDockerfileById(
   let res = await utils.getDockerfile(path, i).then(responce => {
     if (
       responce.data.file.endsWith(".js") ||
+      responce.data.file.endsWith(".j2") ||
       responce.data.file.endsWith(".vim") ||
       responce.data.file.endsWith(".ejs") ||
       responce.data.file.endsWith(".yaml") ||
       responce.data.file.endsWith(".yml") ||
       responce.data.file.endsWith(".rb") ||
+      responce.data.file.endsWith(".erb") ||
+      responce.data.file.endsWith(".java") ||
+      responce.data.file.endsWith(".py") ||
+      responce.data.file.endsWith(".kak") ||
+      responce.data.file.endsWith(".patch") ||
+      responce.data.file.endsWith(".ftl") ||
+      responce.data.file.endsWith(".json") ||
+      responce.data.file.endsWith(".c") ||
+      responce.data.file.endsWith(".php") ||
+      responce.data.file.endsWith(".tar") ||
+      responce.data.file.endsWith(".nanorc") ||
+      responce.data.file.endsWith(".h") ||
+      responce.data.file.endsWith(".cpp") ||
+      responce.data.file.endsWith(".lua") ||
       responce.data.file.endsWith(".go") ||
       responce.data.file.includes("window") ||
+      responce.data.file.endsWith(".sh") ||
+      responce.data.file.endsWith(".rst") ||
+      responce.data.file.endsWith(".template") ||
+      responce.data.file.endsWith(".tmLanguage") ||
       responce.data.file.endsWith(".md")
     ) {
       return null;
@@ -327,7 +357,7 @@ async function runAllDockerfile(vm, start, num_batch) {
     let res = await Promise.all(promises);
     if (res == 0) console.log(res);
     if ((b + 1) % 1 == 0) vm.finished = (b + 1) * batch_size;
-    if (vm.allOutputs.length > 10) {
+    if (vm.allOutputs.length > 30) {
       console.log(vm.allOutputs.length);
       break;
     }
@@ -348,6 +378,7 @@ async function runAllDockerfile(vm, start, num_batch) {
   margin-left: 3em;
   margin-top: 0.3em;
   width: 90%;
+  height: 400px;
   display: flex;
   border-color: rgb(156, 154, 154);
 }
