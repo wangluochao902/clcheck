@@ -11,6 +11,7 @@ HOST_IP = os.getenv('HOST_IP', False)
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost')
 DEBUG = True
 
+COMMON_COMMANDS = ['apt-get', 'rm', 'cd', 'cp', 'mkdir', 'mv', 'chown', 'chmod']
 LOGGING_DICT = {
     'version': 1,
     'disable_existing_loggers': False,

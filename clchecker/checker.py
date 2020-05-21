@@ -7,6 +7,7 @@ from textx import metamodel_from_str
 from clchecker.constants import BASETYPE
 from clchecker.errors import CLSemanticError, CLSyntaxError
 from clchecker.store import Store
+from config import COMMON_COMMANDS
 
 
 class CLchecker():
@@ -14,7 +15,18 @@ class CLchecker():
     def __init__(self, store):
         self.store = store
         self.metamodel_doc_cache = {}
+        self.init_metamodel_doc_cache()
         self.new_lines_start = []
+    
+    def init_metamodel_doc_cache(self):
+        for command_name in COMMON_COMMANDS:
+            command_doc = self.store.findcommand(command_name)
+            if command_doc:
+                command_metamodel = metamodel_from_str(command_doc.tx_syntax +
+                                                       BASETYPE,
+                                                       autokwd=False)
+                self.metamodel_doc_cache[command_name] = (command_metamodel,
+                                                      command_doc)
 
     def assign_name_attr_to_actual_value(self, txobj):
         clsname = txobj.__class__.__name__

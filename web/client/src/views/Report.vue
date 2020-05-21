@@ -8,6 +8,12 @@
     >
       Check all dockerfiles in GitHub
     </button>
+    <button
+      style="text-align: center;margin:0 auto;display: flex;margin-bottom:2em"
+      v-on:click="showAllBugs()"
+    >
+      render bug collection
+    </button>
     <!-- <button
             style="text-align: center;margin:0 auto;display: flex;margin-bottom:2em"
             v-on:click="runAndSave()"
@@ -27,7 +33,7 @@
       <div v-for="(outputsInfo, outerIndex) in allOutputs" :key="outerIndex">
         <div>
           <div>
-            <div style="display:inline">
+            <div class="repoDetail" style="display:inline">
               ObjectId Index: {{ outputsInfo.objectIdIndex }}
 
               <button
@@ -62,7 +68,7 @@
                 add to skipped
               </button>
             </div>
-            <div>
+            <div class="repoDetail">
               In File:
               <a
                 :href="
@@ -75,7 +81,7 @@
                 >{{ outputsInfo.file }}</a
               >
             </div>
-            <div>
+            <div class="repoDetail">
               In Repo:
               <a
                 :href="'https://github.com/' + outputsInfo.repository"
@@ -198,6 +204,7 @@ export default {
             this.path,
             i,
             this.show,
+            this.showOutput,
             this.dockerfiles,
             this.lruCache,
             this.allOutputs
@@ -381,5 +388,8 @@ async function runAllDockerfile(vm, start, num_batch) {
   height: 400px;
   display: flex;
   border-color: rgb(156, 154, 154);
+}
+.repoDetail{
+  margin-left:0.2em;
 }
 </style>
