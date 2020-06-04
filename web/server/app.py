@@ -1,4 +1,5 @@
 import re
+import pymongo
 from flask import Flask, render_template, request, jsonify, abort
 from flask_cors import CORS
 # from flask_bootstrap import Bootstrap
@@ -7,6 +8,7 @@ import bashlex
 from clchecker.visitor import Visitor, create_marker
 from clchecker.checker import CLchecker
 from clchecker.errors import CLError
+from config import MONGO_URI
 from clchecker.store import Store, Command
 import dockerfile
 import os
@@ -38,9 +40,12 @@ if os.environ['ENV'] != "production":
     skipped_collection = db['skipped']
     unknown_collection = db['unknown']
     bug_collection = db['bug']
+    verified_bug_collection = db['verified_bug']
     with open('dockerfiles/object_ids.pkl', 'rb') as f:
         object_ids = pickle.load(f)
 else:
+    db = pymongo.MongoClient(MONGO_URI)['dockerfiles']
+    verified_bug_collection = db['verified_bug']
     dockerfile_collection = None
 
 @app.route('/')
@@ -257,6 +262,27 @@ def delete_from_bug():
     except:
         abort(404, description="can not add to the database")
 
+
+@app.route('/clcheck/getVerifiedBugs/', methods=['GET'])
+def get_verified_bugs():
+    contents = verified_bug_collection.find({})
+    new_contents = []
+    for content in contents:
+        new_content = dict()
+        for key in content:
+            if key != '_id':
+                new_content[key] = content[key]
+        new_contents.append(new_content)
+    return jsonify({"contents": new_contents})
+    
+@app.route('/clcheck/addToVerifiedBug/', methods=['GET', 'POST'])
+def add_to_verified_bug():
+    try:
+        content = request.json['content']
+        verified_bug_collection.insert_one(content)
+        return {'Added': True}
+    except:
+        abort(404, description="can not add to the database")
 
 
 def refine_markers_and_command_range(pre_lines, pre_cols, markers,

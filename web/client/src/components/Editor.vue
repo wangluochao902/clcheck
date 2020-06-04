@@ -246,19 +246,19 @@ RUN apt-get clean -y      && \\
 .editor {
   border-color: grey;
   border-style: solid;
-  width: 60%;
+  width: 65%;
   height: 400px;
   margin: 0 auto;
 }
 .output {
   border-color: gray;
   border-style: solid;
-  width: 60%;
+  width: 65%;
   margin: 0 auto;
   background-color: rgb(245, 243, 240);
 }
 .load {
-  width: 60%;
+  width: 65%;
   margin: 0 auto;
   margin-bottom: 0.2em;
   color: grey;

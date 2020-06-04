@@ -3,7 +3,7 @@ const traverse = require("bash-ast-traverser");
 const DockerfileParser = require("dockerfile-ast").DockerfileParser;
 import axios from "axios";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-console.log = function() {};
+// console.log = function() {};
 const utf8 = require("utf8");
 
 const dockerfileAllInstructions = [
@@ -487,12 +487,25 @@ export async function getBugs(path) {
   return axios.get(path + "getBugs/");
 }
 
+export async function getVerifiedBugs(path) {
+  return axios.get(path + "getVerifiedBugs/");
+}
+
 export async function addToBug(path, details) {
   return axios({
     method: "POST",
     url: path + "addToBug/",
     headers: { "Content-Type": "application/json" },
     data: { details: details }
+  });
+}
+
+export async function addToVerifiedBug(path, content) {
+  return axios({
+    method: "POST",
+    url: path + "addToVerifiedBug/",
+    headers: { "Content-Type": "application/json" },
+    data: { content: content }
   });
 }
 

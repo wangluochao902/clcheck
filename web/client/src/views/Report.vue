@@ -14,6 +14,12 @@
     >
       render bug collection
     </button>
+    <button
+      style="text-align: center;margin:0 auto;display: flex;margin-bottom:2em"
+      v-on:click="showCustom()"
+    >
+      render custom dockerfiles
+    </button>
     <!-- <button
             style="text-align: center;margin:0 auto;display: flex;margin-bottom:2em"
             v-on:click="runAndSave()"
@@ -54,6 +60,12 @@
                 v-on:click="addToBug(outputsInfo)"
               >
                 add to bug collection
+              </button>
+              <button
+                style="margin-left:3em"
+                v-on:click="addToVerifiedBug(outerIndex)"
+              >
+                add to verified bug collection
               </button>
               <button
                 style="margin-left:3em"
@@ -223,6 +235,23 @@ export default {
       runAllDockerfile(this, 17840, 100);
     },
 
+    showCustom() {
+      const custom = [40221, 46111];
+
+      // const custom = [40221, 46111, 128107, 136961, 144964, 125101, 121242, 38431, 11269]
+      for (let i of custom) {
+        checkDockerfileById(
+          this.path,
+          i,
+          this.show,
+          this.showOutput,
+          this.dockerfiles,
+          this.lruCache,
+          this.allOutputs
+        );
+      }
+    },
+
     addToSkipped(details) {
       utils
         .addToSkipped(this.path, details)
@@ -259,6 +288,32 @@ export default {
         );
     },
 
+    addToVerifiedBug(i) {
+      const content = {
+        repository: this.allOutputs[i].repository,
+        file: this.allOutputs[i].file,
+        outputs: this.allOutputs[i].outputs,
+        objectIdIndex: this.allOutputs[i].objectIdIndex,
+        value: this.dockerfiles[i]
+      };
+      utils.addToVerifiedBug(this.path, content).then(res => {
+        if (res.data.Added)
+          Swal.fire(
+            "Success!",
+            "You just added this dockerfile to verified bug collection",
+            "success"
+          );
+        else {
+          Swal.fire(
+            "fail!",
+            "You just added this dockerfile to verified bug collection",
+            "error"
+          );
+          console.log(res);
+        }
+      });
+    },
+
     deleteFromBug(objectIdIndex) {
       utils.deleteFromBug(this.path, objectIdIndex);
     },
@@ -284,7 +339,7 @@ async function checkDockerfileById(
   let res = await utils.getDockerfile(path, i).then(responce => {
     if (
       responce.data.file.endsWith(".js") ||
-      responce.data.file.endsWith(".j2") ||
+      // responce.data.file.endsWith(".j2") ||
       responce.data.file.endsWith(".vim") ||
       responce.data.file.endsWith(".ejs") ||
       responce.data.file.endsWith(".yaml") ||
@@ -314,6 +369,7 @@ async function checkDockerfileById(
     ) {
       return null;
     }
+    console.log(responce.data.code);
     return utils
       .clcheck(responce.data.code, "dockerfile", [], lruCache, path)
       .then(res => {
@@ -389,7 +445,7 @@ async function runAllDockerfile(vm, start, num_batch) {
   display: flex;
   border-color: rgb(156, 154, 154);
 }
-.repoDetail{
-  margin-left:0.2em;
+.repoDetail {
+  margin-left: 0.2em;
 }
 </style>

@@ -1,5 +1,5 @@
 
-BASETYPE = '''
+BASETYPE = r'''
 
 // base type for the DSL
 VERSION:
