@@ -321,7 +321,7 @@ async function checkshell(
   try {
     shellscript = shellscript.replace(/\r\n/g, "\n");
     // replace comment with "\"
-    shellscript = shellscript.replace(/(?<=(^|\n))[ \t]*#.*(?=(\n|$))/g, "\\");
+    shellscript = shellscript.replace(/(^|\n)[ \t]*#.*(?=(\n|$))/g, "$1\\");
     // delete space between"\" and"\n"
     shellscript = shellscript.replace(/\\ +\n/g, "\\\n");
     const ast = parse(shellscript, { insertLOC: true });

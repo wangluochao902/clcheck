@@ -20,12 +20,6 @@
     >
       render custom dockerfiles
     </button>
-    <!-- <button
-            style="text-align: center;margin:0 auto;display: flex;margin-bottom:2em"
-            v-on:click="runAndSave()"
-        >
-            Check all dockerfiles and save to local
-        </button> -->
     <div class="result" style="font-size:100%;">
       <p
         v-show="done"
@@ -149,7 +143,6 @@
 <script>
 import * as utils from "../helper/utils.js";
 import { LRUCache } from "../helper/LRUcache.js";
-import { runAndSave } from "../helper/runAndSave.js";
 import Swal from "sweetalert2";
 import Vue from "vue";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
@@ -317,10 +310,6 @@ export default {
     deleteFromBug(objectIdIndex) {
       utils.deleteFromBug(this.path, objectIdIndex);
     },
-
-    runAndSave() {
-      runAndSave();
-    }
   },
   created() {
     console.log("started");
