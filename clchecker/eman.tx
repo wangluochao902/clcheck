@@ -11,7 +11,7 @@ Synopsis:
 ;
 
 Option[ws='\t ']:
-    /\n*/- "e-options" name=Word ":" /\n*/- Comment* pairs+=OptionPair /\n*/- variables=Variables? /\n*/- "e-end" /\n*/-
+    /\n*/- "e-options" name=Word ":" /\n*/-  pairs+=OptionPair /\n*/- variables=Variables? /\n*/- "e-end" /\n*/-
 ;
 
 Rules:
@@ -84,7 +84,7 @@ VariablePair[ws=' \n\t']:
 // ****************************** Option ************************************
 
 OptionPair[noskipws]:
-    /\t| {4}/- (key=Word2 colon=":")? option_item=OptionItem
+    /\n*/- /\t| {4}/- (key=Word2 colon=":")? option_item=OptionItem
 ;
 
 OptionItem[noskipws]:
@@ -215,6 +215,10 @@ Keyword:
 ;
 
 // ****************************** Comment ************************************
-Comment:
+SingleComment:
     /[\t ]*\/\/.*\n?/
+;
+
+Comment[skipws, ws='\n']:
+    SingleComment+
 ;
