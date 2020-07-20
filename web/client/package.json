@@ -15,7 +15,7 @@
     "core-js": "^3.6.4",
     "dockerfile-ast": "0.0.26",
     "jquery": "^3.5.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "monaco-editor": "^0.20.0",
     "monaco-editor-webpack-plugin": "^1.9.0",
     "mongoose": "^5.9.14",
