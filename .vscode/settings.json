@@ -8,5 +8,6 @@
     "python.testing.pytestEnabled": true,
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${workspaceFolder}"
-    }
+    },
+    "python.formatting.provider": "black"
 }

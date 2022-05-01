@@ -151,10 +151,7 @@ export default {
   name: "Report",
   data() {
     return {
-      path:
-        process.env.NODE_ENV === "production"
-          ? "https://darpa-jeff.uc.r.appspot.com/clcheck/"
-          : "http://127.0.0.1:5000/clcheck/",
+      path: process.env.VUE_APP_CLCHECKER_URI,
       allOutputs: [],
       message: "Done analysis!",
       clicked: false,
@@ -309,7 +306,7 @@ export default {
 
     deleteFromBug(objectIdIndex) {
       utils.deleteFromBug(this.path, objectIdIndex);
-    },
+    }
   },
   created() {
     console.log("started");

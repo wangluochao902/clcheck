@@ -3,7 +3,7 @@ const traverse = require("bash-ast-traverser");
 const DockerfileParser = require("dockerfile-ast").DockerfileParser;
 import axios from "axios";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-// console.log = function() {};
+console.log = function() {};
 const utf8 = require("utf8");
 
 const dockerfileAllInstructions = [

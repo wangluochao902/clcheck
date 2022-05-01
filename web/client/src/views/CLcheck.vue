@@ -88,7 +88,8 @@
           >.
         </h4>
         <h4 style="text-align:center">
-          <router-link to="/bugs">Bugs</router-link> we found using our tool in GitHub
+          <router-link to="/bugs">Bugs</router-link> we found using our tool in
+          GitHub
         </h4>
         <h4 style="text-align:center">
           Visit other projects at
@@ -115,10 +116,7 @@ export default {
   data() {
     return {
       language: "dockerfile",
-      path:
-        process.env.NODE_ENV === "production"
-          ? "https://darpa-jeff.uc.r.appspot.com/clcheck/"
-          : "http://127.0.0.1:5000/clcheck/"
+      path: process.env.VUE_APP_CLCHECKER_URI
     };
   },
 

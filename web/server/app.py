@@ -27,9 +27,7 @@ visitor = Visitor(clchecker, logger=logger)
 CORS(app,
      resources={
          r'/clcheck/*': {
-             'origins':
-                 'https://wangluochao902.github.io'
-                 if os.environ['ENV'] == "production" else "*"
+             'origins': os.environ['ORIGINS']
          }
      })
 
